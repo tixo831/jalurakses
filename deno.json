@@ -3,5 +3,13 @@
     "start": "deno run -A --unstable-kv server.js"
   },
   "nodeModulesDir": "auto",
-  "allowScripts": true
+  "allowScripts": true,
+  "deploy": {
+    "org": "tixo831",
+    "app": "jalurakses-api"
+  }
 }
+
+
+
+

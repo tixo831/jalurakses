@@ -1829,7 +1829,7 @@ function shareReport(f){if(navigator.share){navigator.share({title:'Laporan Jalu
 function devNotify(txt){try{if('Notification' in window&&Notification.permission==='granted'){new Notification('JalurAkses',{body:txt,icon:''});}}catch(e){}}
 /* ================== BACKEND SYNC (hybrid: online → server, offline → perangkat) ================== */
 state.token=store.get('ja_token',null);state.online=false;state.srvStats=null;
-function apiURL(){return store.get('ja_apibase','')||'';}
+function apiURL(){return store.get('ja_apibase','')||(location.origin.indexOf('deno.net')>0?'':'https://jalurakses-api.tixo831.deno.net');}
 function apiFetch(path,opts){
   opts=opts||{};
   const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),3500);
