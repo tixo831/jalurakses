@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "start": "deno run -A --unstable-kv server.js"
+  },
+  "nodeModulesDir": "auto",
+  "allowScripts": true
+}

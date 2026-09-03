@@ -25,11 +25,18 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ---- penyimpanan ---- */
+/* ---- penyimpanan: file data.json (Node) atau Deno KV (Deno Deploy — gratis & persisten) ---- */
+const IS_DENO = (typeof Deno !== 'undefined');
+let kv = null, db = { users: [], reports: [], tokens: {}, ratings: [], announce: null };
 function blank(){ return { users: [], reports: [], tokens: {}, ratings: [], announce: null }; }
-function load(){ try { return Object.assign(blank(), JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))); } catch (e) { return blank(); } }
-const db = load();
-function save(){ try { fs.writeFileSync(DATA_FILE, JSON.stringify(db)); } catch (e) {} }
+async function loadDb(){
+  if (kv) { try { const r = await kv.get(['db']); if (r.value) db = Object.assign(blank(), r.value); } catch (e) {} }
+  else { try { db = Object.assign(blank(), JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))); } catch (e) {} }
+}
+function save(){
+  if (kv) { kv.set(['db'], db).catch(() => {}); }
+  else { try { fs.writeFileSync(DATA_FILE, JSON.stringify(db)); } catch (e) {} }
+}
 
 /* ---- util akun ---- */
 function hashPw(pw, salt){ return crypto.scryptSync(String(pw), salt, 32).toString('hex'); }
@@ -190,4 +197,9 @@ app.post('/api/rating', (req, res) => {
 app.use((req, res) => res.status(404).json({ ok: false, error: 'Endpoint tidak ditemukan: ' + req.path }));
 app.use((err, req, res, next) => res.status(500).json({ ok: false, error: 'Kesalahan server: ' + err.message }));
 
-app.listen(PORT, '0.0.0.0', () => console.log('JalurAkses API (Express) jalan di port ' + PORT));
+/* ---- start: init storage dulu, lalu listen ---- */
+(async () => {
+  if (IS_DENO) { try { kv = await Deno.openKv(); } catch (e) { kv = null; } }
+  await loadDb();
+  app.listen(PORT, '0.0.0.0', () => console.log('JalurAkses API (Express) jalan di port ' + PORT + (kv ? ' · storage: Deno KV' : ' · storage: data.json')));
+})();

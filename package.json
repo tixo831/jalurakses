@@ -1,8 +1,13 @@
 {
   "name": "jalurakses",
   "version": "2.0.0",
-  "description": "JalurAkses — frontend Vue 3 + backend REST Express.js",
+  "description": "JalurAkses \u2014 frontend Vue 3 + backend Express (Node & Deno compatible)",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "express": "^4.19.2" }
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "type": "commonjs"
 }
