@@ -1,6 +1,6 @@
 # JalurAkses — Navigasi Ramah Disabilitas Berbasis AI (Surabaya)
 
-> **Live 24/7 (full-stack):** https://jalurakses-api.tixo831.deno.net · **Mirror statis:** https://yhhdgl.csb.app · QR: `qrcode.png` · Karya untuk lomba
+> **Live 24/7 (full-stack):** https://jalurakses.tixo831.deno.net · **Mirror statis:** https://yhhdgl.csb.app · QR: `qrcode.png` · Karya untuk lomba
 
 Web aplikasi navigasi yang merencanakan **rute aksesibel** bagi penyandang disabilitas di Surabaya dengan AI multi-kriteria, panduan & perintah suara penuh, pelaporan hambatan aksesibilitas berbasis foto + GPS yang **terkirim langsung ke WhatsApp admin**, serta panel admin untuk pengelolaan data.
 
@@ -57,7 +57,7 @@ Backend REST dibangun dengan **framework Express 4** (routing deklaratif, middle
 
 **Arsitektur hybrid sinkron**: frontend otomatis mendeteksi backend (`checkServer`). Online → akun, laporan, pengumuman, rating, aksi admin **tersinkron lintas perangkat** (badge "Server tersambung"). Offline / hosting statis → seluruh fitur tetap berfungsi penuh dengan penyimpanan perangkat (badge "Mode offline"). Admin dapat menyetel **URL Backend** dari Panel Admin tanpa ubah kode.
 
-**Backend live 24/7:** https://jalurakses-api.tixo831.deno.net (Deno Deploy, auto-deploy dari GitHub `tixo831/jalurakses`). **Menjalankan sendiri**: `npm install && npm start` → buka `http://localhost:3000` (port via `PORT`, sandi admin via `ADMIN_PASS`). Untuk hosting 24/7: unggah `server.js` + `package.json` + `index.html` ke VPS/Render/Railway/Fly.io (tanpa build step).
+**Backend live 24/7:** https://jalurakses.tixo831.deno.net (Deno Deploy, auto-deploy dari GitHub `tixo831/jalurakses`). **Menjalankan sendiri**: `npm install && npm start` → buka `http://localhost:3000` (port via `PORT`, sandi admin via `ADMIN_PASS`). Untuk hosting 24/7: unggah `server.js` + `package.json` + `index.html` ke VPS/Render/Railway/Fly.io (tanpa build step).
 
 ## 4. Arsitektur Singkat
 
