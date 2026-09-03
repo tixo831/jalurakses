@@ -1882,7 +1882,20 @@ function renderAdminDash(){const el=$('#adminDash');if(!el)return;
   if(!isAdmin()){el.innerHTML='<p class="muted" style="font-size:.85rem;margin:0">'+IC('shield','sm')+' Statistik &amp; pengelolaan laporan khusus admin. Masuk sebagai Admin (lihat halaman Masuk) untuk membuka dashboard, verifikasi laporan, dan pengumuman.</p>';return;}
   const all=state.feedback,baru=all.filter(x=>x.status==='Baru').length,pro=all.filter(x=>x.status==='Diproses').length,sel=all.filter(x=>x.status==='Selesai').length,ver=all.filter(x=>x.verif).length;
   const r=state.ratings,avg=r.length?(r.reduce((a,b)=>a+b,0)/r.length):0;
-  el.innerHTML='<h4>'+IC('chart','sm')+' Dashboard admin</h4>'+(state.online&&state.srvStats?'<p class="muted" style="font-size:.78rem;margin:2px 0">Server: '+state.srvStats.reports+' laporan · '+state.srvStats.users+' akun terdaftar · rating '+(state.srvStats.ratingAvg||'—')+'/5</p>':'')+'<div class="statmini"><div><b>'+all.length+'</b><span class="muted">total laporan</span></div><div><b>'+baru+'</b><span class="muted">status Baru</span></div><div><b>'+pro+'</b><span class="muted">diproses</span></div><div><b>'+sel+'</b><span class="muted">selesai</span></div><div><b>'+ver+'</b><span class="muted">terverifikasi</span></div><div><b>'+(r.length?avg.toFixed(1).replace('.',','):'—')+'</b><span class="muted">rating rata-rata</span></div></div>';
+  el.innerHTML='<h4>'+IC('chart','sm')+' Dashboard admin</h4>'+(state.online&&state.srvStats?'<p class="muted" style="font-size:.78rem;margin:2px 0">Server: '+state.srvStats.reports+' laporan · '+state.srvStats.users+' akun terdaftar · rating '+(state.srvStats.ratingAvg||'—')+'/5</p>':'')+'<div class="statmini"><div><b>'+all.length+'</b><span class="muted">total laporan</span></div><div><b>'+baru+'</b><span class="muted">status Baru</span></div><div><b>'+pro+'</b><span class="muted">diproses</span></div><div><b>'+sel+'</b><span class="muted">selesai</span></div><div><b>'+ver+'</b><span class="muted">terverifikasi</span></div><div><b>'+(r.length?avg.toFixed(1).replace('.',','):'—')+'</b><span class="muted">rating rata-rata</span></div></div>'+(state.online?'<div style="margin-top:10px"><button class="btn small ghost" id="srvDataBtn">'+IC('box','sm')+' Periksa database server</button><div id="srvDataView" style="margin-top:8px"></div></div>':'');
+  const sb=$('#srvDataBtn');
+  if(sb)sb.addEventListener('click',async()=>{
+    const v=$('#srvDataView');if(!v)return;v.innerHTML='<p class="muted" style="font-size:.85rem;margin:0">Memuat…</p>';
+    try{const j=await apiFetch('/api/admin/data');
+      if(j&&j.ok){const d=j.data;
+        v.innerHTML='<div class="statmini"><div><b>'+d.users.length+'</b><span class="muted">akun</span></div><div><b>'+d.reports.length+'</b><span class="muted">laporan</span></div><div><b>'+d.ratings.length+'</b><span class="muted">rating</span></div><div><b>'+d.tokensAktif+'</b><span class="muted">token aktif</span></div></div>'+
+        (d.users.length?'<details style="margin-top:6px"><summary class="linkbtn" style="cursor:pointer">Daftar akun ('+d.users.length+')</summary><p class="muted" style="font-size:.8rem;margin:6px 0 0">'+d.users.map(u=>esc(u.nama)+' — '+esc(u.kontak)+' ('+esc(u.jenis)+')').join('<br>')+'</p></details>':'<p class="muted" style="font-size:.8rem;margin:6px 0 0">Belum ada akun terdaftar di server.</p>')+
+        '<p class="muted" style="font-size:.75rem;margin-top:6px">Pengumuman tersimpan: '+(d.announce?esc(d.announce.txt.slice(0,80)):'—')+'</p>'+
+        '<button class="btn small ghost" id="srvDataDl">'+IC('download','sm')+' Unduh database (JSON)</button>';
+        const dl=$('#srvDataDl');if(dl)dl.addEventListener('click',()=>dlFile('jalurakses-database-server-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(j,null,1),'application/json'));
+      } else v.innerHTML='<p class="muted" style="font-size:.85rem;margin:0">Gagal memuat — masuk ulang sebagai admin agar token server aktif.</p>';
+    }catch(e){v.innerHTML='<p class="muted" style="font-size:.85rem;margin:0">Server tidak terjangkau.</p>';}
+  });
   const ae=$('#annAdmin');if(ae){ae.innerHTML='<h4>'+IC('mega','sm')+' Kirim pengumuman ke pengguna</h4><textarea id="annText" rows="2" placeholder="Contoh: Trotoar Jl. Basuki Rahmat selesai diperbaiki. Terima kasih atas laporan Anda!" style="width:100%;margin-top:6px">'+(state.announce?esc(state.announce.txt):'')+'</textarea><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn small" id="annSet">'+IC('send','sm')+' Kirim pengumuman</button><button class="btn small ghost" id="annDel">'+IC('trash','sm')+' Hapus pengumuman</button></div>';
     $('#annSet').addEventListener('click',()=>{const t=$('#annText').value.trim();if(!t){toast('Teks pengumuman masih kosong');return;}state.announce={ts:Date.now(),txt:t};store.set('ja_announce',state.announce);pushNotif('Pengumuman admin: '+t.slice(0,80),'mega');renderAnn();toast('Pengumuman terkirim ke pengguna');if(state.online)apiFetch('/api/announcement',{method:'PUT',body:JSON.stringify({txt:t})}).catch(()=>{});});
     $('#annDel').addEventListener('click',()=>{state.announce=null;store.set('ja_announce',null);renderAnn();renderAdminDash();toast('Pengumuman dihapus');});}}
@@ -2072,8 +2085,11 @@ $('#ltabDaftar').addEventListener('click',()=>loginTab(true));
 $('#daftarBtn').addEventListener('click',daftarAkun);
 $('#akunMasukBtn').addEventListener('click',masukAkun);
 $('#daftarTgl').max=new Date(Date.now()-157788000000).toISOString().slice(0,10);
-$('#adminMasukBtn').addEventListener('click',()=>{
-  if($('#adminPass').value===ADMIN_PASS){setUser({nama:'Admin JalurAkses',role:'admin'});$('#adminPass').value='';}
+$('#adminMasukBtn').addEventListener('click',async()=>{
+  if($('#adminPass').value===ADMIN_PASS){
+    setUser({nama:'Admin JalurAkses',role:'admin'});$('#adminPass').value='';
+    if(state.online){try{const j=await apiFetch('/api/admin/login',{method:'POST',body:JSON.stringify({pass:ADMIN_PASS})});if(j&&j.ok){state.token=j.token;store.set('ja_token',j.token);toast('Admin tersambung ke server — pengelolaan berlaku lintas perangkat');renderAdminDash();}}catch(e){}}
+  }
   else{toast('Kata sandi admin salah');$('#adminPass').value='';}
 });
 $('#bellBtn').addEventListener('click',()=>{renderNotifPanel();$('#notifPanel').classList.toggle('hidden');});

@@ -185,6 +185,17 @@ app.put('/api/announcement', adminOnly, (req, res) => {
   res.json({ ok: true, announce: db.announce });
 });
 
+/* ---- admin: periksa seluruh database ---- */
+app.get('/api/admin/data', adminOnly, (req, res) => {
+  res.json({ ok: true, data: {
+    users: db.users.map(u => ({ uid: u.uid, nama: u.nama, kontak: u.kontak, jenis: u.jenis, tgl: u.tgl, created: u.created })),
+    reports: db.reports.map(slimReport),
+    ratings: db.ratings,
+    announce: db.announce,
+    tokensAktif: Object.keys(db.tokens).length
+  } });
+});
+
 /* ---- rating ---- */
 app.post('/api/rating', (req, res) => {
   const v = Math.round(+(req.body || {}).v);
