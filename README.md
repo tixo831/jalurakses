@@ -53,7 +53,7 @@ Backend REST dibangun dengan **framework Express 4** (routing deklaratif, middle
 | `/api/rating` | POST | Rating kepuasan 1–5 |
 | `/api/stats` | GET | Statistik publik (jumlah laporan/status/akun/rating) |
 
-**Keamanan**: scrypt + salt per pengguna, token acak 48-hex dengan kedaluwarsa, pemisahan role user/admin, CORS terbuka (dipakai frontend statis), batas body 2,5 MB. **Storage**: `data.json` (file — mudah diaudit; ganti ke PostgreSQL/MySQL cukup di fungsi `load/save`).
+**Keamanan**: scrypt + salt per pengguna, token acak 48-hex dengan kedaluwarsa, pemisahan role user/admin, CORS terbuka (dipakai frontend statis), batas body 2,5 MB. **Storage**: `data.json` di repo privat `tixo831/jalurakses-data` (tersimpan & terversi via GitHub API — audit trail; ganti ke PostgreSQL/MySQL cukup di fungsi `load/save`).
 
 **Arsitektur hybrid sinkron**: frontend otomatis mendeteksi backend (`checkServer`). Online → akun, laporan, pengumuman, rating, aksi admin **tersinkron lintas perangkat** (badge "Server tersambung"). Offline / hosting statis → seluruh fitur tetap berfungsi penuh dengan penyimpanan perangkat (badge "Mode offline"). Admin dapat menyetel **URL Backend** dari Panel Admin tanpa ubah kode.
 
