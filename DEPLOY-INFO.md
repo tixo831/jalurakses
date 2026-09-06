@@ -216,3 +216,10 @@ Riwayat singkat: v17 Express · v16 backend+hybrid · v15 Vue 3 · v14 always-mi
 - **Fix kritis**: 7 handler aksi laporan memaksa id numerik — id laporan server berupa string sehingga dukungan/WA/share/verifikasi/hapus/ubah-status/lightbox TIDAK berfungsi untuk laporan sync server. Semua kini membandingkan `String(z.id)`.
 - **Foto laporan demo**: 4 foto realistis (AI-generated, dikompres 36–58 KB) ditanam ke database — thumbnail + lightbox tampil otomatis via **lazy-load** `GET /api/reports/:id/photos` (baru untuk item server ber-foto).
 - Live terverifikasi: photos endpoint ✓ frontend ter-deploy ✓ mirror csb diperbarui.
+
+## v23 — PWA + OG preview (maksimalisasi final)
+
+- **PWA**: `/manifest.webmanifest` + `/sw.js` (cache UI, API dilewati) — web bisa **dipasang di layar utama** (Android/iOS) & tetap terbuka offline; register SW otomatis hanya di origin deno.net.
+- **OG/Twitter card** + ikon aplikasi (AI-generated 1024 → 512/192/180) — link preview cantik saat dibagikan.
+- **Preconnect** unpkg & tile OSM (load lebih cepat).
+- Live: manifest 200 ✓ sw.js 200 ✓ OG ✓ ikon raw 200 ✓ API sehat ✓.

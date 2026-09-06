@@ -86,7 +86,9 @@ Berdasarkan proyeksi Badan Pusat Statistik, terdapat ±22 juta penyandang disabi
 - **Rute Tersimpan** — simpan hasil AI, buka ulang 1 ketukan
 - **Asisten AI Chat** — pencari rute, tips per profil, penjelasan taktil/ramp/regulasi (UU 8/2016, UU 19/2011) bahasa Indonesia
 - **Edukasi & Kuis** — materi, tempat ramah disabilitas + filter fasilitas + cari terdekat GPS
-- **Hybrid Offline-First** — badge "Server tersambung / Mode offline"; seluruh fitur tetap berfungsi tanpa internet
+- **PWA & Offline-First** — badge "Server tersambung / Mode offline"; *service worker* + manifest membuat web **dapat dipasang di layar utama HP** (ikon aplikasi, mode standalone) dan tetap terbuka **tanpa internet**
+  
+- **Share preview & performa** — Open Graph preview saat link dibagikan ke WhatsApp/sosmed, preconnect CDN, favicon & app icon SVG/PNG
 - **Aksesibilitas UI** — kontras tinggi, teks besar, skip-link, ARIA lengkap, 59 ikon SVG (tanpa emoji)
 
 ---
