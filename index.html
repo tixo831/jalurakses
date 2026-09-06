@@ -1589,29 +1589,30 @@ function renderFeedback(){
     (x.photos&&x.photos.length?'<div class="fbphotos">'+x.photos.map((p,i)=>'<img src="'+p+'" data-id="'+x.id+'" data-idx="'+i+'" alt="Foto laporan '+(i+1)+'" tabindex="0" role="button" aria-label="Lihat foto '+(i+1)+'">').join('')+'</div>':'')+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn small ghost" data-up="'+x.id+'">'+IC('users','sm')+' Saya alami juga (<b style="margin-left:3px">'+(x.up||0)+'</b>)</button><button class="btn small ghost" data-swa="'+x.id+'" title="Kirim laporan ini ke admin via WhatsApp">'+IC('chat','sm')+' WA Admin</button><button class="btn small ghost" data-shr="'+x.id+'" aria-label="Bagikan laporan">'+IC('send','sm')+'</button>'+(adm?'<label style="margin:0;font-size:.8rem" for="st'+x.id+'">Status:</label><select id="st'+x.id+'" style="width:auto;padding:6px 10px;font-size:.85rem"><option'+(x.status==='Baru'?' selected':'')+'>Baru</option><option'+(x.status==='Diproses'?' selected':'')+'>Diproses</option><option'+(x.status==='Selesai'?' selected':'')+'>Selesai</option></select><button class="btn small ghost" data-verif="'+x.id+'">'+IC('check','sm')+' '+(x.verif?'Batalkan verifikasi':'Verifikasi')+'</button><button class="btn small ghost" data-del="'+x.id+'" aria-label="Hapus laporan">'+IC('trash','sm')+'</button>':'')+'</div></div>').join(''):'<div class="card"><p class="muted" style="margin:0">Belum ada laporan. Jadilah yang pertama melaporkan hambatan aksesibilitas.</p></div>';
   $$('.fbphotos img').forEach(img=>{
-    const open=()=>{const it=state.feedback.find(z=>z.id===+img.dataset.id);if(it&&it.photos){$('#lightboxImg').src=it.photos[+img.dataset.idx];$('#lightbox').classList.add('show');}};
+    const open=()=>{const it=state.feedback.find(z=>String(z.id)===String(img.dataset.id));if(it&&it.photos){$('#lightboxImg').src=it.photos[+img.dataset.idx];$('#lightbox').classList.add('show');}};
     img.addEventListener('click',open);
     img.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
   });
   $$('button[data-up]').forEach(b=>b.addEventListener('click',()=>{
-    const it=state.feedback.find(z=>z.id===+b.dataset.up);
+    const it=state.feedback.find(z=>String(z.id)===String(b.dataset.up));
     if(it){it.up=(it.up||0)+1;store.set('ja_fb',state.feedback);renderFeedback();if(state.online&&it.sid)apiFetch('/api/reports/'+it.sid+'/up',{method:'POST'}).catch(()=>{});}
   }));
-  $$('button[data-swa]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>z.id===+b.dataset.swa);if(it)window.open(waLink(it),'_blank');}));
-  $$('button[data-shr]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>z.id===+b.dataset.shr);if(it)shareReport(it);}));
+  $$('button[data-swa]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>String(z.id)===String(b.dataset.swa));if(it)window.open(waLink(it),'_blank');}));
+  $$('button[data-shr]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>String(z.id)===String(b.dataset.shr));if(it)shareReport(it);}));
   $$('select[id^="st"]').forEach(s=>s.addEventListener('change',e=>{
-    const id=+e.target.id.slice(2);const it=state.feedback.find(z=>z.id===id);
+    const id=e.target.id.slice(2);const it=state.feedback.find(z=>String(z.id)===id);
     if(it){it.status=e.target.value;store.set('ja_fb',state.feedback);pushNotif('Status laporan "'+(it.lok||'tanpa lokasi')+'" kini: '+it.status,'flag');renderFeedback();renderMyZone();if(state.online&&it.sid)apiFetch('/api/reports/'+it.sid,{method:'PATCH',body:JSON.stringify({status:it.status})}).then(()=>refreshServerReports()).catch(()=>{});}
   }));
   $$('button[data-verif]').forEach(b=>b.addEventListener('click',()=>{
-    const it=state.feedback.find(z=>z.id===+b.dataset.verif);
+    const it=state.feedback.find(z=>String(z.id)===String(b.dataset.verif));
     if(it){it.verif=!it.verif;store.set('ja_fb',state.feedback);renderFeedback();renderMyZone();toast(it.verif?'Laporan ditandai terverifikasi':'Verifikasi dibatalkan');if(state.online&&it.sid)apiFetch('/api/reports/'+it.sid,{method:'PATCH',body:JSON.stringify({verif:it.verif})}).catch(()=>{});}
   }));
   $$('button[data-del]').forEach(b=>b.addEventListener('click',()=>{
     const del=state.feedback.find(z=>z.id===+b.dataset.del);
-    state.feedback=state.feedback.filter(z=>z.id!==+b.dataset.del);store.set('ja_fb',state.feedback);renderFeedback();renderMyZone();toast('Laporan dihapus');
+    state.feedback=state.feedback.filter(z=>String(z.id)!==String(b.dataset.del));store.set('ja_fb',state.feedback);renderFeedback();renderMyZone();toast('Laporan dihapus');
     if(state.online&&del&&del.sid)apiFetch('/api/reports/'+del.sid,{method:'DELETE'}).then(()=>refreshServerReports()).catch(()=>{});
   }));
+  f.filter(x=>x.sid&&x.fotos>0&&!(x.photos&&x.photos.length)&&!x._ph).forEach(x=>{x._ph=1;apiFetch('/api/reports/'+x.sid+'/photos').then(j=>{if(j&&j.ok&&j.photos&&j.photos.length){x.photos=j.photos;store.set('ja_fb',state.feedback);renderFeedback();}}).catch(()=>{});});
   const done=all.filter(z=>z.status==='Selesai').length;
   const cats={};all.forEach(z=>cats[z.kat]=(cats[z.kat]||0)+1);
   const maxC=Math.max(1,...Object.values(cats));
@@ -1908,7 +1909,7 @@ function renderMyZone(){const el=$('#myZone');if(!el)return;const uid=myUid();
     '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0"><b>'+p+' poin kontribusi</b><span class="muted" style="font-size:.78rem">+10 per laporan · +5 saat laporan selesai · +2 per penilaian'+(lv.next?' · level berikutnya di '+lv.next+' poin':' · level tertinggi')+'</span></div>'+
     '<div class="poinbar" role="img" aria-label="Kemajuan level '+pct+' persen"><i style="width:'+pct+'%"></i></div>'+
     (my.length?my.map(x=>'<div class="fbitem" style="margin-top:10px"><div class="top"><b>'+esc(x.lok)+'</b>'+fbBadge(x.status)+(x.verif?'<span class="chip chip-ok">'+IC('check','sm')+' Terverifikasi</span>':'')+'<span class="chip">'+esc(x.kat)+'</span><span class="muted" style="font-size:.75rem">'+new Date(x.ts).toLocaleDateString('id-ID')+'</span><span style=\"margin-left:auto\"><button class=\"btn small ghost\" data-mwa=\"'+x.id+'\">'+IC('chat','sm')+' Kirim ke admin</button></span></div>'+steps(x.status)+'</div>').join(''):'<p class="muted" style="font-size:.85rem;margin:10px 0 0">Belum ada laporan dari Anda. Kirim lewat formulir di atas — pantau perkembangan statusnya di sini, dan kumpulkan poin kontribusi.</p>');
-  $$('#myZone button[data-mwa]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>z.id===+b.dataset.mwa);if(it)window.open(waLink(it),'_blank');}));
+  $$('#myZone button[data-mwa]').forEach(b=>b.addEventListener('click',()=>{const it=state.feedback.find(z=>String(z.id)===String(b.dataset.mwa));if(it)window.open(waLink(it),'_blank');}));
 }
 function renderSaved(){const el=$('#savedCard');if(!el)return;
   if(!state.user||isAdmin()){el.classList.add('hidden');return;}
