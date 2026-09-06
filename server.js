@@ -46,11 +46,17 @@ async function ghRead(){
   const j=await r.json();dataSha=j.sha;
   return JSON.parse(unb64(j.content));
 }
-async function ghWrite(obj){
-  const body=JSON.stringify({message:'data: '+new Date().toISOString(),content:b64(JSON.stringify(obj)),sha:dataSha||undefined});
+async function ghPut(obj,sha){
+  const body=JSON.stringify({message:'data: '+new Date().toISOString(),content:b64(JSON.stringify(obj)),sha:sha||undefined});
   const r=await fetch(GH_API,{method:'PUT',headers:{Authorization:'Bearer '+GH_PAT,Accept:'application/vnd.github+json','Content-Type':'application/json','User-Agent':'jalurakses'},body});
   if(!r.ok)throw new Error('ghWrite '+r.status+' '+(await r.text()).slice(0,120));
   const j=await r.json();dataSha=j.content.sha;
+}
+async function ghWrite(obj){
+  try{ await ghPut(obj,dataSha); }
+  catch(e){ /* konflik sha antar-instance: baca ulang lalu coba sekali lagi */
+    try{ await ghRead(); await ghPut(obj,dataSha); }catch(e2){ throw e2; }
+  }
 }
 async function loadDb(){
   if(GH_PAT){try{const d=await ghRead();if(d)db=Object.assign(blank(),d);console.log('DB: GitHub (sha '+dataSha+')');}catch(e){console.log('DB: GitHub baca gagal — mulai kosong:',e.message);}}
@@ -239,5 +245,5 @@ app.use((err, req, res, next) => res.status(500).json({ ok: false, error: 'Kesal
 (async () => {
   if (IS_DENO) { try { kv = await Deno.openKv(); } catch (e) { kv = null; } }
   await loadDb();
-  app.listen(PORT, '0.0.0.0', () => console.log('JalurAkses API (Express) jalan di port ' + PORT + (kv ? ' · storage: Deno KV' : ' · storage: data.json')));
+  app.listen(PORT, '0.0.0.0', () => console.log('JalurAkses API (Express) jalan di port ' + PORT + (GH_PAT ? ' · DB: repo GitHub privat' : (kv ? ' · DB: Deno KV' : ' · DB: data.json lokal'))));
 })();
