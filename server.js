@@ -17,6 +17,12 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'admin2026';
 
 /* ---- middleware ---- */
 app.use(express.json({ limit: '2.5mb' }));
+/* pastikan semua tulisan KV selesai sebelum respons terkirim (data persisten) */
+app.use((req, res, next) => {
+  const oj = res.json.bind(res);
+  res.json = (x) => (kv ? saveChain.then(() => oj(x)).catch(() => oj(x)) : oj(x));
+  next();
+});
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
@@ -33,9 +39,10 @@ async function loadDb(){
   if (kv) { try { const r = await kv.get(['db']); if (r.value) db = Object.assign(blank(), r.value); } catch (e) {} }
   else { try { db = Object.assign(blank(), JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))); } catch (e) {} }
 }
+let saveChain = Promise.resolve();
 function save(){
-  if (kv) { kv.set(['db'], db).catch(() => {}); }
-  else { try { fs.writeFileSync(DATA_FILE, JSON.stringify(db)); } catch (e) {} }
+  if (kv) { saveChain = saveChain.then(() => kv.set(['db'], db)).catch(() => {}); return saveChain; }
+  else { try { fs.writeFileSync(DATA_FILE, JSON.stringify(db)); } catch (e) {} return Promise.resolve(); }
 }
 
 /* ---- util akun ---- */
