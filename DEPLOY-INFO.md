@@ -210,3 +210,9 @@ Riwayat singkat: v17 Express · v16 backend+hybrid · v15 Vue 3 · v14 always-mi
 - **Masalah ditemukan & diperbaiki**: Deno KV di org gratis tak diverifikasi ternyata tidak persisten (data hilang saat instance tidur/redeploy). Storage v3: database disimpan sebagai `data.json` di repo privat **tixo831/jalurakses-data** via GitHub API (token via env `GH_PAT`, tidak di kode; retry konflik sha antar-instance; respons menunggu write selesai).
 - **Data demo untuk juri** (seed via API resmi): 6 akun warga (sandu `demo1234`), 12 laporan lokasi nyata Surabaya + GPS, status 6 Baru/4 Diproses/2 Selesai, 6 terverifikasi, dukungan hingga 22, rating 4,3/5 (14x), pengumuman admin aktif. Lihat **DEMO.md** (panduan demo + skenario 4 menit).
 - **Uji persistensi**: force-redeploy 2× → data tetap utuh ✓.
+
+## v22 — Sempurnaan final lomba
+
+- **Fix kritis**: 7 handler aksi laporan memaksa id numerik — id laporan server berupa string sehingga dukungan/WA/share/verifikasi/hapus/ubah-status/lightbox TIDAK berfungsi untuk laporan sync server. Semua kini membandingkan `String(z.id)`.
+- **Foto laporan demo**: 4 foto realistis (AI-generated, dikompres 36–58 KB) ditanam ke database — thumbnail + lightbox tampil otomatis via **lazy-load** `GET /api/reports/:id/photos` (baru untuk item server ber-foto).
+- Live terverifikasi: photos endpoint ✓ frontend ter-deploy ✓ mirror csb diperbarui.
