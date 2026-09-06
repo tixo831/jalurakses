@@ -38,7 +38,7 @@
 
 | Nama | Peran | GitHub |
 |------|-------|--------|
-| **Muhammad Azraf Hamiz Kurnianto** | Project & UI/UX Designer | - |
+| **Muhammad Azraf Hamiz Kurnianto** | Project & UI/UX Designer | [azrafkurnianto9](https://github.com/azrafkurnianto9) |
 | **Mustiko Muhammad Santoso** | Full Stack Developer | [tixo831](https://github.com/tixo831) |
 | **Aryasatya Rezandria Azmi** | Ide Developer | [azry4f](https://github.com/azry4f) |
 
