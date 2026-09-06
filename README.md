@@ -12,7 +12,7 @@
 
   **Submission for ITECHNO CUP 2026 - Web Development**
 
-  **By Muhammad Azraf Hamiz Kurnianto · Mustiko Muhammad Santoso · Arya Satya Rezandriya Azmi**
+  **By Muhammad Azraf Hamiz Kurnianto · Mustiko Muhammad Santoso · Aryasatya Rezandria Azmi**
 
 </div>
 
@@ -40,7 +40,7 @@
 |------|-------|--------|
 | **Muhammad Azraf Hamiz Kurnianto** | Project & UI/UX Designer | - |
 | **Mustiko Muhammad Santoso** | Full Stack Developer | [tixo831](https://github.com/tixo831) |
-| **Arya Satya Rezandriya Azmi** | Ide Developer | - |
+| **Aryasatya Rezandria Azmi** | Ide Developer | [azry4f](https://github.com/azry4f) |
 
 ---
 
