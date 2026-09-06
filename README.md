@@ -12,7 +12,7 @@
 
   **Submission for ITECHNO CUP 2026 - Web Development**
 
-  **By Mustiko Muhammad S.**
+  **By Muhammad Azraf Hamiz Kurnianto · Mustiko Muhammad Santoso · Arya Satya Rezandriya Azmi**
 
 </div>
 
@@ -38,7 +38,9 @@
 
 | Nama | Peran | GitHub |
 |------|-------|--------|
-| **Mustiko Muhammad S.** | Project Lead & Full Stack Developer (Frontend, Backend, UI/UX) | [tixo831](https://github.com/tixo831) |
+| **Muhammad Azraf Hamiz Kurnianto** | Project & UI/UX Designer | - |
+| **Mustiko Muhammad Santoso** | Full Stack Developer | [tixo831](https://github.com/tixo831) |
+| **Arya Satya Rezandriya Azmi** | Ide Developer | - |
 
 ---
 
@@ -407,6 +409,6 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
 <div align="center">
 
-  **Made with ❤️ by Mustiko Muhammad S. for ITECHNO CUP 2026**
+  **Made with ❤️ by Azraf · Mustiko · Arya for ITECHNO CUP 2026**
 
 </div>
