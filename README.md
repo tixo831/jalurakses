@@ -103,15 +103,14 @@ Akun demo (sandi `demo1234`): `budi.santoso90@gmail.com` (Tunanetra) · Admin: h
 
 <div align="center">
 
-  <!-- TODO: ganti dengan screenshot Anda, misal file docs/screenshot/beranda.png di repo ini -->
-  <img src="[URL_SCREENSHOT_1]" alt="Homepage" width="800"/>
-  <p><em>Beranda — pengumuman admin, kartu fitur, badge server tersambung</em></p>
+  <img src="docs/screenshot/beranda.jpg" alt="Beranda" width="800"/>
+  <p><em>Beranda — pengumuman admin, badge "Server tersambung", profil disabilitas, statistik kota</em></p>
 
-  <img src="[URL_SCREENSHOT_2]" alt="Rute AI" width="800"/>
-  <p><em>Rute AI — peta jalan nyata, skor aksesibilitas, alternatif rute</em></p>
+  <img src="docs/screenshot/rute-ai.jpg" alt="Rute AI" width="800"/>
+  <p><em>Rute AI — rencanakan perjalanan dengan preferensi, rekomendasi AI + skor aksesibilitas 99/100</em></p>
 
-  <img src="[URL_SCREENSHOT_3]" alt="Laporan" width="800"/>
-  <p><em>Laporan — form foto+GPS, daftar laporan warga, WhatsApp admin terbuka otomatis</em></p>
+  <img src="docs/screenshot/edukasi.jpg" alt="Edukasi" width="800"/>
+  <p><em>Edukasi — materi disabilitas, etika, standar fasilitas & regulasi (UU No. 8/2016)</em></p>
 
 </div>
 
