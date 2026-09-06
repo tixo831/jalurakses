@@ -237,6 +237,33 @@ app.post('/api/rating', (req, res) => {
   res.status(201).json({ ok: true });
 });
 
+/* ---- PWA: manifest & service worker ---- */
+const ABS='https://raw.githubusercontent.com/tixo831/jalurakses/main';
+app.get('/manifest.webmanifest', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.json({
+    name: 'JalurAkses — Navigasi Ramah Disabilitas',
+    short_name: 'JalurAkses',
+    start_url: '/', display: 'standalone',
+    background_color: '#0f766e', theme_color: '#0f766e',
+    description: 'Rute aksesibel AI, panduan suara, laporan warga — Surabaya ramah bagi semua.',
+    icons: [
+      { src: ABS + '/docs/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: ABS + '/docs/icon-512.png', sizes: '512x512', type: 'image/png' }
+    ]
+  });
+});
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.send("const C='jalurakses-v1';\n" +
+    "self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['/'])).then(()=>self.skipWaiting()))});\n" +
+    "self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});\n" +
+    "self.addEventListener('fetch',e=>{const u=new URL(e.request.url);\n" +
+    " if(e.request.method!=='GET'||u.pathname.indexOf('/api')===0)return;\n" +
+    " e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const cl=res.clone();caches.open(C).then(c=>c.put(e.request,cl));return res}).catch(()=>caches.match('/'))));\n" +
+    "});\n");
+});
+
 /* ---- 404 & error handler (middleware Express) ---- */
 app.use((req, res) => res.status(404).json({ ok: false, error: 'Endpoint tidak ditemukan: ' + req.path }));
 app.use((err, req, res, next) => res.status(500).json({ ok: false, error: 'Kesalahan server: ' + err.message }));

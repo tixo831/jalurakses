@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="JalurAkses — navigasi ramah disabilitas berbasis AI untuk Surabaya: rute aksesibel, panduan suara, laporan warga dengan foto & GPS, terkirim langsung ke admin.">
   <meta name="theme-color" content="#0f766e">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+  <meta property="og:title" content="JalurAkses — Navigasi Ramah Disabilitas Berbasis AI">
+  <meta property="og:description" content="Rute aksesibel dengan AI, panduan & perintah suara, dan laporan warga yang terkirim langsung ke admin kota. Untuk Surabaya yang ramah bagi semua.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jalurakses.tixo831.deno.net">
+  <meta property="og:image" content="https://raw.githubusercontent.com/tixo831/jalurakses/main/docs/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tixo831/jalurakses/main/docs/icon-180.png">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10.5 12 3l9 7.5'/%3E%3Cpath d='M5 9.5V21h14V9.5'/%3E%3Cpath d='M10 21v-6h4v6'/%3E%3C/svg%3E">
 <title>JalurAkses — Navigasi Ramah Disabilitas Berbasis AI</title>
 <meta name="description" content="JalurAkses membantu penyandang disabilitas menemukan rute terbaik, aman, dan nyaman di Surabaya dengan analisis AI: rute pintar, saran personal, edukasi, serta saluran keluhan & kepuasan pengguna.">
@@ -2097,6 +2107,7 @@ $('#bellBtn').addEventListener('click',()=>{renderNotifPanel();$('#notifPanel').
 document.addEventListener('click',e=>{const p=$('#notifPanel');if(p&&!p.classList.contains('hidden')&&e.target!==p&&!p.contains(e.target)&&e.target.closest&&e.target.closest('#bellBtn')!==document.getElementById('bellBtn')&&!document.getElementById('bellBtn').contains(e.target))p.classList.add('hidden');});
 renderBell();renderAnn();renderAdminDash();renderMyZone();renderSaved();
 checkServer();
+if('serviceWorker' in navigator && /deno\.net/.test(location.origin)){try{navigator.serviceWorker.register('/sw.js').catch(()=>{});}catch(e){}}
 
 /* ================== AKSESIBILITAS PERANGKAT ================== */
 const mqDark=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
