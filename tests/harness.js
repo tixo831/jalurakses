@@ -13,7 +13,7 @@ global.location={href:'http://localhost/',origin:'http://localhost',reload(){}};
 global.navigator={language:'id-ID',vibrate:()=>true};
 global.speechSynthesis={speak(){},cancel(){},getVoices:()=>[]};
 global.fetch=()=>Promise.resolve({ok:false,json:()=>Promise.resolve({})});
-global.scrollTo=()=>{};global.Blob=class{};global.FileReader=class{};global.alert=()=>{};global.confirm=()=>true;`;
+global.matchMedia=q=>({matches:false,addEventListener(){},addListener(){}});global.scrollTo=()=>{};global.Blob=class{};global.FileReader=class{};global.alert=()=>{};global.confirm=()=>true;global.requestAnimationFrame=()=>0;global.gtag=()=>{};global.L=undefined;document.body=mk();document.head=mk();`;
 const tmp=path.join(os.tmpdir(),'ja_harness.js');
 fs.writeFileSync(tmp,mock+m[1]+`
 let p=0,f=0;const ok=(c,n)=>{c?p++:(f++,console.log('FAIL:',n))};
