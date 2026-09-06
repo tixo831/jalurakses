@@ -31,18 +31,38 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ---- penyimpanan: file data.json (Node) atau Deno KV (Deno Deploy — gratis & persisten) ---- */
+/* ---- penyimpanan: repo GitHub privat (persisten & terversi) / data.json lokal / Deno KV ---- */
 const IS_DENO = (typeof Deno !== 'undefined');
-let kv = null, db = { users: [], reports: [], tokens: {}, ratings: [], announce: null };
+const GH_PAT = (typeof process !== 'undefined' && process.env && process.env.GH_PAT) || (IS_DENO ? Deno.env.get('GH_PAT') : '') || '';
+const GH_API = 'https://api.github.com/repos/tixo831/jalurakses-data/contents/data.json';
+let kv = null, db = { users: [], reports: [], tokens: {}, ratings: [], announce: null }, dataSha = null;
 function blank(){ return { users: [], reports: [], tokens: {}, ratings: [], announce: null }; }
-async function loadDb(){
-  if (kv) { try { const r = await kv.get(['db']); if (r.value) db = Object.assign(blank(), r.value); } catch (e) {} }
-  else { try { db = Object.assign(blank(), JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))); } catch (e) {} }
+function b64(s){ const b=new TextEncoder().encode(s); let t=''; b.forEach(x=>t+=String.fromCharCode(x)); return btoa(t); }
+function unb64(s){ const t=atob(s.replace(/\s|\n/g,'')); const b=Uint8Array.from(t,c=>c.charCodeAt(0)); return new TextDecoder().decode(b); }
+async function ghRead(){
+  const r=await fetch(GH_API,{headers:{Authorization:'Bearer '+GH_PAT,Accept:'application/vnd.github+json','User-Agent':'jalurakses'}});
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error('ghRead '+r.status);
+  const j=await r.json();dataSha=j.sha;
+  return JSON.parse(unb64(j.content));
 }
-let saveChain = Promise.resolve();
+async function ghWrite(obj){
+  const body=JSON.stringify({message:'data: '+new Date().toISOString(),content:b64(JSON.stringify(obj)),sha:dataSha||undefined});
+  const r=await fetch(GH_API,{method:'PUT',headers:{Authorization:'Bearer '+GH_PAT,Accept:'application/vnd.github+json','Content-Type':'application/json','User-Agent':'jalurakses'},body});
+  if(!r.ok)throw new Error('ghWrite '+r.status+' '+(await r.text()).slice(0,120));
+  const j=await r.json();dataSha=j.content.sha;
+}
+async function loadDb(){
+  if(GH_PAT){try{const d=await ghRead();if(d)db=Object.assign(blank(),d);console.log('DB: GitHub (sha '+dataSha+')');}catch(e){console.log('DB: GitHub baca gagal — mulai kosong:',e.message);}}
+  else if(!IS_DENO){try{db=Object.assign(blank(),JSON.parse(fs.readFileSync(DATA_FILE,'utf8')));}catch(e){}console.log('DB: data.json lokal');}
+  else{try{kv=await Deno.openKv();const r=await kv.get(['db']);if(r.value)db=Object.assign(blank(),r.value);console.log('DB: Deno KV');}catch(e){kv=null;console.log('DB: memori (sementara)');}}
+}
+let saveChain=Promise.resolve();
 function save(){
-  if (kv) { saveChain = saveChain.then(() => kv.set(['db'], db)).catch(() => {}); return saveChain; }
-  else { try { fs.writeFileSync(DATA_FILE, JSON.stringify(db)); } catch (e) {} return Promise.resolve(); }
+  if(GH_PAT){saveChain=saveChain.then(()=>ghWrite(db)).catch(e=>console.error('simpan gagal:',e.message));return saveChain;}
+  if(kv){saveChain=saveChain.then(()=>kv.set(['db'],db)).catch(()=>{});return saveChain;}
+  try{fs.writeFileSync(DATA_FILE,JSON.stringify(db));}catch(e){}
+  return Promise.resolve();
 }
 
 /* ---- util akun ---- */
