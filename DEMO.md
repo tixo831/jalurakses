@@ -2,6 +2,14 @@
 
 > **Live:** https://jalurakses.tixo831.deno.net · DB sudah berisi data realistis (6 akun, 12 laporan, rating 4,3/5)
 
+## Sorotan Chatbot (baru!)
+
+Buka tombol **Asisten AI** (kanan bawah) dan coba ke juri:
+1. `rute tugu pahawan ke gubng` → *tetap paham* (fuzzy, tahan typo)
+2. `saya pakai kursi roda` → profil & seluruh analisis berubah + tips personal
+3. `ke Monkasel` → paham konteks (tujuan dari tempat terakhir yang dibicarakan)
+4. `pasang di layar utama?`, `berapa biayanya?`, `data saya aman tidak?` → jawaban siap
+
 ## Akun Demo (semua bernama sandi: `demo1234`)
 
 | Nama | Login | Jenis pengguna |
