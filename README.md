@@ -84,6 +84,7 @@ Berdasarkan proyeksi Badan Pusat Statistik, terdapat ±22 juta penyandang disabi
 - **"Laporan Saya"** — timeline status Dikirim→Diproses→Selesai + badge Terverifikasi
 - **Notifikasi** — bel in-app + badge belum-dibaca + **notifikasi perangkat asli** (Notification API)
 - **Rute Tersimpan** — simpan hasil AI, buka ulang 1 ketukan
+- **Panduan Langsung (navigasi suara real-time)** — saat berjalan, asisten bersuara otomatis: *belok kanan/kiri* (prediksi dari geometri rute AI), *penyeberangan dengan lampu lalu lintas* (data APILL lapangan), tangga, trotoar rusak, jalur taktil, hingga "tiba di tujuan" — posisi GPS di-*snap* ke rute, getaran pendukung, mode **Simulasi** untuk mencoba tanpa berjalan, dan perintah suara "mulai navigasi"
 - **Asisten AI Chat 24/7** — chatbot NLU lokal: pencocokan *fuzzy* (tahan typo), 15+ *intent* (rute, tips, taktil/ramp/regulasi UU 8/2016 & 19/2011, biaya, privasi, cara pasang PWA, GPS), ganti profil lewat bahasa natural ("saya pakai kursi roda" — mic otomatis aktif untuk tunanetra), memori konteks ("ke Monkasel"), dan *fallback* aman — bot selalu menjawab
 - **Edukasi & Kuis** — materi, tempat ramah disabilitas + filter fasilitas + cari terdekat GPS
 - **PWA & Offline-First** — badge "Server tersambung / Mode offline"; *service worker* + manifest membuat web **dapat dipasang di layar utama HP** (ikon aplikasi, mode standalone) dan tetap terbuka **tanpa internet**

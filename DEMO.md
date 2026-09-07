@@ -2,6 +2,14 @@
 
 > **Live:** https://jalurakses.tixo831.deno.net · DB sudah berisi data realistis (6 akun, 12 laporan, rating 4,3/5)
 
+## Sorotan Panduan Langsung ⭐ (fitur andalan!)
+
+Rute AI → tombol **▶ Simulasi** (tanpa jalan-jalan) atau **🔊 Mulai Panduan Langsung** (GPS asli):
+- Suara otomatis: "Dalam 30 meter, belok kanan ke Jl. Tunjungan", "penyeberangan dengan lampu lalu lintas, tunggu lampu hijau", "tidak ada jalur taktil, berhati-hatilah", "Anda telah tiba di tujuan"
+- Sumber data: geometri rute AI (bearing belokan) + atribut jalan hasil survei (APILL, arus lalu lintas, taktil, tangga/ramp, trotoar, jembatan)
+- Profil Tunanetra: bisa dijalankan sepenuhnya dengan suara — "rute ke Gubeng" lalu "mulai navigasi"
+- Bar panduan di atas layar: sisa jarak, manuver berikutnya, progres, akurasi GPS
+
 ## Sorotan Chatbot (baru!)
 
 Buka tombol **Asisten AI** (kanan bawah) dan coba ke juri:

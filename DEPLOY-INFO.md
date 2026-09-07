@@ -230,3 +230,11 @@ Riwayat singkat: v17 Express · v16 backend+hybrid · v15 Vue 3 · v14 always-mi
 - **NLU maksimal**: fuzzy Levenshtein ≤1 (tahan typo "pahawan/gubng"), intent baru (siapa-kamu, help, ganti profil via chat + auto-mic netra, biaya, privasi, offline, pasang/PWA, GPS, toilet), memori konteks ("ke Monkasel" setelah menyebut tempat), chips 6.
 - **Kuis**: reset state `answered` basi saat restore; (v-prior: typo, progres bar, skor persisten).
 - **Uji real-browser (Puppeteer/Chrome headless)**: 20 asersi — semua PASS, 0 pageerror: chat crash-query ✓ profil-switch ✓ fuzzy ✓ kuis (penjelasan/jawaban ditandai/tombol) ✓ alur chat penuh ✓.
+
+## v25 — Panduan Langsung: navigasi suara real-time (fitur andalan)
+
+- **Mesin**: buildNavPlan dari rute AI — polyline kumulatif + event (belok via delta bearing, info segmen via atribut lapangan: APILL/signalized, crossings, traffic, tactile, stairs/ramp, sidewalk, slope, bridge, rest) + event tiba.
+- **Runtime**: GPS watchPosition → snap-to-route (proyeksi segmen, meter lokal) → umumkan event ≤50 m sebelum (sekali per event), deteksi keluar-rute (>35 m), monotonik anti-mundur, TTS antre (id-ID), getaran, wake-lock.
+- **Mode Simulasi** (kecepatan 7 m/s default, param speed) — demo indoor untuk juri.
+- **Integrasi**: tombol di hasil rute, perintah suara ("mulai/stop navigasi"), intent chatbot, chip "Mulai navigasi", hint toast setelah analisis.
+- **Uji Puppeteer 22 asersi total**: plan/event/belokan/APILL/snap/arrive/auto-stop/voice-command/chatbot — SEMUA PASS, 0 pageerror; harness PASS=10.

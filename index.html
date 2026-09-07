@@ -175,6 +175,11 @@ details.acc .body{padding:6px 20px 18px}
 .qopt:disabled{cursor:default; opacity:.85}
 .qbarWrap{height:8px;background:var(--line);border-radius:99px;margin:10px 0 2px;overflow:hidden}
 .qbar{height:100%;background:var(--brand);border-radius:99px;transition:width .35s}
+.navbar-live{position:fixed;top:10px;left:50%;transform:translateX(-50%);width:min(94vw,560px);z-index:1200;background:var(--card);border:2px solid var(--brand);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 12px}
+.navbar-live .nvhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem}
+.navbar-live .nvmain{font-size:1.02rem;margin:6px 0 4px}
+.nvbarWrap{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.nvbar{height:100%;background:var(--brand);transition:width .3s}
 /* ============ MASUKAN ============ */
 .starbar{display:flex; gap:6px}
 .starbar button{background:none; border:none; cursor:pointer; color:var(--line); line-height:1; padding:2px}
@@ -1488,7 +1493,8 @@ function renderRouteResult(res){
    '<div class="progress" style="margin:12px 0 4px"><i style="width:'+best.score+'%"></i></div>'+
    '<p class="muted" style="font-size:.8rem;margin-top:0">Tingkat keyakinan analisis: '+res.confidence+'%</p>'+
    ((res.fromId==='__live'||res.toId==='__live')?'<p class="chip chip-info" style="font-size:.78rem">'+IC('pin','sm')+' Titik '+((res.fromId==='__live')?'awal':'tujuan')+' = posisi GPS Anda · akurasi ±'+Math.round(state.livePos?state.livePos.acc:0)+' m — segmen pertama adalah jalur akses menuju jaringan rute terdekat</p>':'')+
-   '<button class="btn ghost small readbtn" id="readRouteBtn" aria-label="Bacakan rute dengan suara"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-speaker"/></svg> Bacakan rute (panduan suara)</button>'+
+   '<button class="btn ghost small readbtn" id="readRouteBtn" aria-label="Bacakan rute dengan suara"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-speaker"/></svg> Bacakan rute (panduan suara)</button>'+'   <button class="btn small" id="navStartBtn" style="margin-left:6px">🔊 Mulai Panduan Langsung</button>'+
+   '<button class="btn ghost small" id="navSimBtn" style="margin-left:6px" title="Coba panduan suara tanpa berjalan (dianimasikan)">▶ Simulasi</button>'+
    ((state.user&&state.user.role!=='admin')?'<button class="btn ghost small" id="saveRouteBtn" style="margin-left:8px">'+IC('bookmark','sm')+' Simpan rute ini</button>':'')+
    '<h4>Mengapa rute ini?</h4><ul class="aiexplain">'+best.explanation.map(x=>'<li class="'+(x.ok?'ok':'warn')+'" style="color:'+(x.ok?'var(--ok)':'var(--warn)')+'">'+x.t+'</li>').join('')+'</ul>';
   /* alternatives */
@@ -1498,6 +1504,8 @@ function renderRouteResult(res){
       '<p class="muted" style="font-size:.83rem;margin:6px 0 0">'+a.desc+'</p>'+
       '<p style="font-size:.86rem;margin:6px 0 0"><b>'+fmtDist(a.distM)+'</b> · ±'+fmtTime(a.timeM)+' · '+IC('steps','sm')+' '+a.stats.stairs+' · '+IC('traffic','sm')+' '+a.stats.cross+'</p></div>').join('')+'</div>';
   $('#readRouteBtn').addEventListener('click',()=>speakRoute(res));
+  const nvb=$('#navStartBtn');if(nvb)nvb.addEventListener('click',()=>startNav('gps'));
+  const nsb=$('#navSimBtn');if(nsb)nsb.addEventListener('click',()=>startNav('sim'));
   const sv=$('#saveRouteBtn');if(sv)sv.addEventListener('click',()=>{
     state.saved.unshift({id:Date.now(),from:res.fromId,to:res.toId,fn:POI_BY_ID[res.fromId].name,tn:POI_BY_ID[res.toId].name,prof:(PROFILES[res.profileKey]||{}).label||''});
     state.saved=state.saved.slice(0,10);store.set('ja_routes',state.saved);renderSaved();toast('Rute tersimpan — lihat "Rute tersimpan" di kolom kiri');
@@ -1737,6 +1745,174 @@ $('#expWa').addEventListener('click',()=>{
   const t=dataSummary()+'\n\n(CSV/JSON lengkap: unduh lewat tombol Ekspor lalu lampirkan.)';
   window.open('https://wa.me/'+getContact().wa+'?text='+encodeURIComponent(t),'_blank');
 });
+/* ================== PANDUAN LANGSUNG (NAVIGASI SUARA REAL-TIME) ==================
+   Prediksi manuver dari geometri rute AI (bearing belokan) + data lapangan nyata
+   per segmen (penyeberangan ber-APILL, arus lalu lintas, jalur taktil, tangga/ramp,
+   trotoar, jembatan, titik istirahat). Posisi di-snap ke polyline rute. ================== */
+function bearingDeg(a,b){const toR=x=>x*Math.PI/180;const y=Math.sin(toR(b[1]-a[1]))*Math.cos(toR(b[0]));const x=Math.cos(toR(a[0]))*Math.sin(toR(b[0]))-Math.sin(toR(a[0]))*Math.cos(toR(b[0]))*Math.cos(toR(b[1]-a[1]));return (Math.atan2(y,x)*180/Math.PI+360)%360;}
+function relTurn(b1,b2){return (b2-b1+540)%360-180;}
+function turnWord(d){const a=Math.abs(d);if(a<30)return 'lurus';if(a<150)return (d>0?'kanan':'kiri');return (d>0?'sangat tajam ke kanan':'sangat tajam ke kiri');}
+function navMeters(a,b){const R=6371000,toR=x=>x*Math.PI/180;const dLa=toR(b[0]-a[0]),dLo=toR(b[1]-a[1]);const q=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(dLo/2)*Math.sin(dLo/2);return 2*R*Math.asin(Math.sqrt(q));}
+function edgeSpeech(e,profile){
+  const p=[];
+  if(e.crossings>0)p.push(e.signalized>0?('penyeberangan dengan lampu lalu lintas, tunggu lampu hijau; lalu lintas '+(e.traffic==='tinggi'?'padat, ekstra hati-hati':'sedang')):('penyeberangan tanpa lampu, berhenti, dengarkan arus lalu lintas'+(e.traffic==='tinggi'?' yang padat':'')+', pastikan aman baru menyeberang'));
+  if(e.stairs>0&&!e.ramp)p.push('ada '+e.stairs+' anak tangga tanpa ramp');
+  if(e.bridge)p.push('akan melewati '+e.bridge);
+  if(e.sidewalk==='buruk')p.push('trotoar rusak, kurangi kecepatan');
+  if(profile==='netra')p.push(e.tactile?'jalur taktil tersedia, ikuti terus':'tidak ada jalur taktil di jalan ini, berhati-hatilah');
+  if(e.slope==='landai')p.push('jalan sedikit menanjak');
+  if(e.rest)p.push('ada titik istirahat bila perlu');
+  if(e.traffic==='tinggi'&&!(e.crossings>0))p.push('lalu lintas padat di jalur ini');
+  return p;
+}
+function buildNavPlan(edges,profile){
+  const pts=[];const events=[];let cum=0;
+  edges.forEach((e,i)=>{
+    const ep=edgePoints(e);
+    const startCum=cum;
+    ep.forEach((ll,k)=>{if(k<ep.length-1){pts.push({ll:ll,s:cum});cum+=navMeters(ll,ep[k+1]);}});
+    const endCum=cum;
+    const off=Math.min(25,Math.max(6,(endCum-startCum)*.12));
+    const info=edgeSpeech(e,profile);
+    events.push({id:'seg'+i,d:startCum+off,t:'seg',street:e.street,info:info});
+    if(i<edges.length-1){
+      const np=edgePoints(edges[i+1]);
+      const b1=bearingDeg(ep[ep.length-2],ep[ep.length-1]);
+      const b2=bearingDeg(np[0],np[1]);
+      const rel=relTurn(b1,b2);
+      events.push({id:'turn'+i,d:endCum,t:'turn',rel:rel,dir:turnWord(rel),street:edges[i+1].street});
+    }
+  });
+  events.push({id:'arr',d:cum,t:'arr'});
+  events.forEach(ev=>{if(ev.t==='seg'&&!ev.info.length)ev.skip=1;});
+  return {pts:pts,events:events,total:cum};
+}
+function navProj(ll){const lat0=-7.25;return [ll[1]*111320*Math.cos(lat0*Math.PI/180),ll[0]*110540];}
+function snapToRoute(n,ll){
+  const P=navProj(ll);let best={off:1e9,s:0};
+  for(let i=0;i<n.pts.length-1;i++){
+    const A=navProj(n.pts[i].ll),B=navProj(n.pts[i+1].ll);
+    const dx=B[0]-A[0],dy=B[1]-A[1];const L2=dx*dx+dy*dy;
+    let t=L2?((P[0]-A[0])*dx+(P[1]-A[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));
+    const off=Math.hypot(P[0]-(A[0]+t*dx),P[1]-(A[1]+t*dy));
+    if(off<best.off)best={off:off,s:n.pts[i].s+t*(n.pts[i+1].s-n.pts[i].s)};
+  }
+  return best;
+}
+let navPumpOn=false;
+function navSpeak(txt){
+  const n=state.nav;if(!n)return;
+  n.queue.push(txt);if(n.queue.length>2)n.queue.shift();
+  pumpNav();
+}
+function pumpNav(){
+  const n=state.nav;if(!n||navPumpOn||!n.queue.length)return;
+  navPumpOn=true;const txt=n.queue.shift();
+  const done=()=>{navPumpOn=false;if(typeof micHold==='function')setTimeout(()=>micHold(false),300);setTimeout(()=>{if(state.nav)pumpNav();},220);};
+  try{
+    if(!('speechSynthesis' in window)){done();return;}
+    if(typeof micHold==='function')micHold(true);
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(txt);u.lang='id-ID';u.rate=1.02;
+    try{const vs=speechSynthesis.getVoices();const v=vs.find(v=>/id[-_]ID|Indonesia/i.test(v.lang+' '+v.name));if(v)u.voice=v;}catch(e){}
+    u.onend=done;u.onerror=done;
+    speechSynthesis.speak(u);
+  }catch(e){done();}
+}
+function navVib(pat){try{if(navigator.vibrate)navigator.vibrate(pat);}catch(e){}}
+function navEventText(ev,dd){
+  if(ev.t==='arr')return 'Anda telah tiba di tujuan. Perjalanan selesai, semoga selamat sampai.';
+  if(ev.t==='turn'){
+    const dLab=Math.max(5,Math.round(dd/5)*5);
+    if(ev.dir==='lurus')return 'Dalam '+dLab+' meter, tetap lurus menyusuri '+ev.street+'.';
+    return 'Dalam '+dLab+' meter, belok '+ev.dir+' ke '+ev.street+'.';
+  }
+  if(ev.t==='seg')return 'Memasuki '+ev.street+'. '+ev.info.slice(0,3).join('. ')+'.';
+  return '';
+}
+function navNextEvent(n){
+  const up=n.events.filter(ev=>!n.announced[ev.id]&&!ev.skip).sort((a,b)=>a.d-b.d);
+  return up[0]||null;
+}
+function updateNavBar(){
+  const n=state.nav;if(!n)return;
+  const main=$('#navMain'),prog=$('#navProg');if(!main)return;
+  const rem=Math.max(0,n.total-n.s);
+  const nx=navNextEvent(n);
+  const nxTxt=nx?(nx.t==='arr'?'tiba di tujuan':(nx.t==='turn'?'belok '+nx.dir+' ke '+nx.street:'masuk '+nx.street)):'menyusuri jalur';
+  main.innerHTML='<b>'+fmtDist(rem)+'</b> lagi · selanjutnya: '+nxTxt+' · '+(n.mode==='sim'?'SIMULASI':'GPS LANGSUNG'+(n.acc?' ±'+Math.round(n.acc)+' m':''));
+  if(prog)prog.style.width=Math.min(100,Math.round(n.s/n.total*100))+'%';
+}
+function navProcess(){
+  const n=state.nav;if(!n||n.done)return;
+  const LOOK=50;
+  n.events.forEach(ev=>{
+    if(n.announced[ev.id]||ev.skip)return;
+    const dd=ev.d-n.s;
+    if(dd<=LOOK&&dd>-6){
+      n.announced[ev.id]=1;
+      const txt=navEventText(ev,dd);
+      if(txt){navSpeak(txt);navVib([90,60,90]);}
+    }
+  });
+  if(n.mode==='gps'&&n.off>35&&!n.warnOff){n.warnOff=1;navSpeak('Hati-hati, Anda tampak keluar dari rute. Kembali ke jalur, atau analisis ulang rute.');navVib([200,100,200,100,200]);}
+  if(n.total-n.s<=12)navArrive();else updateNavBar();
+}
+function navArrive(){
+  const n=state.nav;if(!n||n.done)return;
+  n.done=true;
+  const arr=n.events.find(ev=>ev.t==='arr');
+  if(arr&&!n.announced[arr.id]){n.announced[arr.id]=1;navSpeak(navEventText(arr,0));}
+  navVib([150,80,150,80,300]);
+  const main=$('#navMain');if(main)main.innerHTML='<b>✓ Tiba di tujuan — '+esc(n.destName)+'</b>';
+  const prog=$('#navProg');if(prog)prog.style.width='100%';
+  setTimeout(()=>{stopNav(false);},4000);
+}
+function buildNavBar(destName){
+  let bar=$('#navBar');
+  if(!bar){bar=document.createElement('div');bar.id='navBar';document.body.appendChild(bar);}
+  bar.className='navbar-live';
+  bar.innerHTML='<div class="nvhead"><span>🔊 <b>Panduan Langsung</b> — '+esc(destName)+'</span><button class="btn small ghost" id="navStop">Selesai</button></div><div class="nvmain" id="navMain">Menyiapkan panduan…</div><div class="nvbarWrap"><div class="nvbar" id="navProg" style="width:0%"></div></div>';
+  $('#navStop').addEventListener('click',()=>stopNav(true));
+}
+function startNav(mode,speed){
+  if(!state.route||!state.route.best){toast('Analisis rute dulu di tab Rute');return;}
+  if(state.nav)stopNav(false);
+  const b=state.route.best;
+  const plan=buildNavPlan(b.edges,state.profile);
+  const dest=POI_BY_ID[state.route.toId];
+  state.nav={pts:plan.pts,events:plan.events,total:plan.total,mode:mode,speed:speed||(mode==='sim'?7:0),s:0,off:0,acc:0,announced:{},queue:[],done:false,lastTick:Date.now(),destName:dest?dest.name:'tujuan'};
+  buildNavBar(state.nav.destName);
+  try{setWake(true);}catch(e){}
+  navSpeak('Panduan langsung '+(mode==='sim'?'simulasi':'GPS')+' dimulai. Tujuan, '+state.nav.destName+'. Jarak '+fmtDist(state.nav.total)+'. Perkiraan waktu '+fmtTime(b.timeM)+'. Mari berangkat.');
+  if(mode==='sim'){
+    state.nav.timer=setInterval(()=>{const n=state.nav;if(!n||n.done)return;const now=Date.now();n.s+=n.speed*(now-n.lastTick)/1000;n.lastTick=now;navProcess();},300);
+  }else{
+    if(!navigator.geolocation){toast('GPS tidak didukung browser ini');return;}
+    if(!state.livePos)toast('Mengunci posisi GPS…');
+    state.nav.gpsWatch=navigator.geolocation.watchPosition(p=>{
+      const n=state.nav;if(!n||n.done)return;
+      const ll=[p.coords.latitude,p.coords.longitude];
+      const snap=snapToRoute(n,ll);
+      n.off=snap.off;n.acc=p.coords.accuracy||0;
+      const ns=snap.s-(snap.off>25?25:0);
+      if(ns>=n.s-15)n.s=Math.max(n.s,ns);
+      navProcess();
+    },()=>{},{enableHighAccuracy:true,maximumAge:1500,timeout:20000});
+  }
+  showTab('rute');
+  updateNavBar();
+}
+function stopNav(spoken){
+  const n=state.nav;if(!n)return;
+  if(n.timer)clearInterval(n.timer);
+  if(n.gpsWatch!=null){try{navigator.geolocation.clearWatch(n.gpsWatch);}catch(e){}}
+  state.nav=null;navPumpOn=false;
+  const bar=$('#navBar');if(bar)bar.remove();
+  try{setWake(false);}catch(e){}
+  if(spoken)speak('Panduan langsung dihentikan.');
+}
+
 /* ================== AI CHAT ================== */
 const ALIASES={tugu:'tugu pahlawan|pahlawan|tugu',monkasel:'monkasel|kapal selam|submarine',balikota:'balai kota|balikota|city hall',jmerah:'jembatan merah|jmt merah',tp:'tunjungan plaza|tunjungan|tp',atom:'pasar atom|atom',halteTP:'halte tunjungan|brt',gubeng:'gubeng|stasiun gubeng|stasiun',unair:'unair|airlangga|kampus|universitas airlangga',grandcity:'grand city|grandcity',apsari:'apsari',soetomo:'soetomo|rsud|rumah sakit',kbinsat:'kebun binatang|kbs|zoo',bungkul:'bungkul'};
 function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;if(!m||!n)return Math.max(m,n);let prev=[];for(let j=0;j<=n;j++)prev[j]=j;for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur;}return prev[n];}
@@ -1810,6 +1986,12 @@ function aiReply(raw){
   if(/gratis|bayar|harga|biaya|langganan|berbayar/.test(q))return{text:'JalurAkses 100% gratis dan tanpa iklan. Seluruh analisis AI berjalan di perangkat Anda, jadi tidak ada biaya server yang dibebankan ke siapa pun.'};
   if(/privasi|data pribadi|data saya|aman (gak|tidak|ga)/.test(q))return{text:'Privasi Anda terjaga:\n\u2022 Analisis rute & chat berjalan lokal di perangkat \u2014 tidak dikirim ke server AI mana pun.\n\u2022 Akun & laporan hanya tersimpan di database aplikasi dan hanya admin yang dapat melihatnya.\n\u2022 Tidak ada pelacakan, tidak ada iklan.'};
   if(/offline|tanpa internet|sinyal|tidak ada kuota/.test(q))return{text:'Tenang, JalurAkses offline-first! Setelah sekali dibuka, tampilan & data peta inti tersimpan di perangkat \u2014 web tetap terbuka tanpa internet (mode offline), dan laporan yang Anda kirim otomatis tersinkron begitu online kembali.'};
+  if(/navigasi|panduan langsung|panduan suara/.test(q)){
+    if(/mulai|mulai sekarang|start|jalankan/.test(q)){try{startNav('gps');}catch(e){}
+      if(state.nav)return{text:'Panduan Langsung aktif! Saya akan mengumumkan belokan, penyeberangan ber-lampu lalu lintas, hambatan, dan tujuan secara real-time lewat suara — lengkap dengan getaran. Bar panduan tampil di atas layar.'};
+    }
+    return{text:'Panduan Langsung = navigasi suara real-time untuk perjalanan:\n\u2022 Analisis rute dulu (mis. "rute Tugu Pahlawan ke Gubeng")\n\u2022 lalu ketuk \u266a Mulai Panduan Langsung (GPS) atau ucapkan "mulai navigasi"\n\u2022 Saya umumkan: belok kiri/kanan, penyeberangan + lampu lalu lintas, tangga, trotoar rusak, jalur taktil, hingga tiba di tujuan\n\u2022 Ingin mencoba tanpa berjalan? Ketuk \u25b6 Simulasi.'};
+  }
   if(/pasang|instal|install|layar utama|home screen|tambahkan ke|jadi (aplikasi|apk)/.test(q))return{text:'Bisa! JalurAkses adalah PWA (Progressive Web App):\n\u2022 Android \u2014 buka di Chrome, menu \u22ee \u2192 "Tambahkan ke layar utama"\n\u2022 iPhone \u2014 buka di Safari, tombol Bagikan \u2192 "Tambahkan ke Layar Utama"\n\nSetelah terpasang, JalurAkses terbuka seperti aplikasi biasa dengan ikon sendiri dan tetap bisa dipakai tanpa internet.'};
   if(/gps|lokasi (saya )?(tidak|kurang)|akurat|salah (lokasi|posisi)/.test(q))return{text:'Jika GPS kurang akurat:\n\u2022 Pastikan izin lokasi diaktifkan untuk browser Anda\n\u2022 Keluar ke area terbuka agar sinyal lebih kuat\n\u2022 Atau pilih titik asal manual di dropdown tab Rute\n\nAnda juga bisa memakai perintah suara: "rute ke [tempat]".'};
   if(/toilet|toalet|kamar mandi/.test(q))return{text:'Data toilet aksesibel belum tercakup di peta saat ini \u2014 itu masukan berharga! Anda bisa mengusulkannya lewat tab Laporan (pilih kategori fasilitas), dan admin kota akan menindaklanjuti.',goto:'laporan'};
@@ -1831,7 +2013,7 @@ function toggleChat(force){
   if(open)$('#chatInput').focus();
 }
 function showChat(o){toggleChat(o);}
-const CHIPS=['Rute Tugu Pahlawan ke Gubeng','Dari sini ke Monkasel','Saya pakai kursi roda','Apa itu jalur taktil?','Cara melaporkan keluhan','Pasang di layar utama?'];
+const CHIPS=['Rute Tugu Pahlawan ke Gubeng','Mulai navigasi','Dari sini ke Monkasel','Saya pakai kursi roda','Apa itu jalur taktil?','Cara melaporkan keluhan'];
 $('#chatChips').innerHTML=CHIPS.map(c=>'<button>'+esc(c)+'</button>').join('');
 $$('#chatChips button').forEach(b=>b.addEventListener('click',()=>{$('#chatInput').value=b.textContent;sendChat();}));
 function sendChat(){
@@ -2264,6 +2446,9 @@ function handleVoice(t){
     if(state.route)speakRoute(state.route);
     return;
   }
+  if(/mulai (navigasi|panduan)|panduan langsung|navigasi (mulai|suara|start)/.test(t)){startNav('gps');return;}
+  if(/simulasi/.test(t)){startNav('sim');return;}
+  if(/(stop|henti|akhiri|matikan).{0,14}(navigasi|panduan)/.test(t)){stopNav(true);return;}
   if(/edukasi/.test(t))return showTab('edukasi');
   if(/saran|rekomendasi|tips/.test(t))return showTab('edukasi');
   if(/masukan|keluhan|lapor/.test(t))return showTab('laporan');
@@ -2303,6 +2488,7 @@ $('#shrTestBtn').addEventListener('click',()=>shareReport({kat:'Uji bagikan',lok
 
 function afterRouteFX(res,silent){
   if(store.get('ja_devVib',false)&&navigator.vibrate)navigator.vibrate([70,50,70]);
+  if(!silent)toast('🔊 Panduan Langsung siap — tombol di hasil rute, atau ucapan "mulai navigasi"');
   if(!silent&&store.get('ja_devTTS',false))setTimeout(()=>speakRoute(res),350);
 }
 $('#locateBtn').addEventListener('click',()=>{
