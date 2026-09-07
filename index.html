@@ -173,6 +173,8 @@ details.acc .body{padding:6px 20px 18px}
 .qopt.correct{border-color:var(--ok); background:var(--ok-soft)}
 .qopt.wrong{border-color:var(--bad); background:var(--bad-soft)}
 .qopt:disabled{cursor:default; opacity:.85}
+.qbarWrap{height:8px;background:var(--line);border-radius:99px;margin:10px 0 2px;overflow:hidden}
+.qbar{height:100%;background:var(--brand);border-radius:99px;transition:width .35s}
 /* ============ MASUKAN ============ */
 .starbar{display:flex; gap:6px}
 .starbar button{background:none; border:none; cursor:pointer; color:var(--line); line-height:1; padding:2px}
@@ -1266,7 +1268,7 @@ const state={
   ratings:store.get('ja_rate',[]),
   checklist:{},
   facFilter:new Set(),
-  quiz:{i:0,score:0,answered:false}
+  quiz:store.get('ja_quiz')||{i:0,score:0,answered:false}
 };
 
 /* ================== NAVIGATION ================== */
@@ -1567,16 +1569,18 @@ const QUIZ=[
  {q:'Kemiringan ideal ramp (tanjakan) untuk kursi roda adalah…',o:['1 : 2','1 : 5','1 : 12'],a:2,why:'Naik setinggi 1 meter membutuhkan landai ± 12 meter agar aman dan tidak melelahkan.'},
  {q:'Etika yang benar saat ingin membantu penyandang disabilitas:',o:['Langsung mendorong kursi rodanya agar cepat','Menawarkan bantuan lebih dahulu dan menghormati jawabannya','Berbicara kepada pendampingnya, bukan kepada penyandangnya'],a:1,why:'Selalu tawarkan bantuan dahulu; setiap orang berhak menolak.'},
  {q:'Undang-undang yang menjamin hak penyandang disabilitas di Indonesia adalah…',o:['UU No. 8 Tahun 2016','UU No. 22 Tahun 2001','UU No. 5 Tahun 1990'],a:0,why:'UU 8/2016 menjamin aksesibilitas pendidikan, kesehatan, transportasi, dan fasilitas publik.'},
- {q:'Berkomunikasi dengan penyandang tunarungu yang paling tepat:',o:['Berteriak sekeras-kerasnya','Berbicara sambil menunduk','Menghadapkan wajah, bicara jelas & natural, tulis bila perlu'],a:2,why:'Kontak wajah membantu membaca bibur dan bahasa tubuh; berteriak justru mengubah bentuk bibir.'}
+ {q:'Berkomunikasi dengan penyandang tunarungu yang paling tepat:',o:['Berteriak sekeras-kerasnya','Berbicara sambil menunduk','Menghadapkan wajah, bicara jelas & natural, tulis bila perlu'],a:2,why:'Kontak wajah membantu membaca bibir dan bahasa tubuh; berteriak justru mengubah bentuk bibir.'}
 ];
 function renderQuiz(){
   const q=QUIZ[state.quiz.i];
   if(!q){
-    $('#quizCard').innerHTML='<h3 style="margin-top:0">Skor Anda: '+state.quiz.score+' / '+QUIZ.length+'</h3><p class="muted">'+(state.quiz.score===QUIZ.length?'Sempurna! Anda siap menjadi pendamping yang baik.':'Bagus! Buka kembali materi di atas untuk memperdalam.')+'</p><button class="btn ghost" id="quizReset">'+IC('refresh')+' Ulangi kuis</button>';
-    $('#quizReset').addEventListener('click',()=>{state.quiz={i:0,score:0,answered:false};renderQuiz();});
+    const perfect=state.quiz.score===QUIZ.length;
+    $('#quizCard').innerHTML='<h3 style="margin-top:0">'+(perfect?'\ud83c\udfc6 ':'')+'Skor Anda: '+state.quiz.score+' / '+QUIZ.length+'</h3><p class="muted">'+(perfect?'Sempurna! Anda siap menjadi pendamping yang baik.':state.quiz.score>=3?'Bagus! Buka kembali materi di atas untuk memperdalam.':'Tidak apa-apa — pelajari kembali materi di atas, lalu coba lagi.')+'</p><button class="btn ghost" id="quizReset">'+IC('refresh')+' Ulangi kuis</button>';
+    store.set('ja_quiz',state.quiz);
+    $('#quizReset').addEventListener('click',()=>{state.quiz={i:0,score:0,answered:false};store.set('ja_quiz',state.quiz);renderQuiz();});
     return;
   }
-  $('#quizCard').innerHTML='<p class="muted" style="font-size:.82rem">Soal '+(state.quiz.i+1)+' dari '+QUIZ.length+' · Skor sementara: '+state.quiz.score+'</p><h4 style="margin-top:0">'+esc(q.q)+'</h4><div id="qopts">'+q.o.map((o,i)=>'<button class="qopt" data-i="'+i+'">'+esc(o)+'</button>').join('')+'</div><p id="qwhy" class="muted" style="font-size:.88rem"></p><button class="btn small hidden" id="qnext">Lanjut</button>';
+  $('#quizCard').innerHTML='<div class="qbarWrap" aria-hidden="true"><div class="qbar" style="width:'+Math.round(state.quiz.i/QUIZ.length*100)+'%"></div></div><p class="muted" style="font-size:.82rem">Soal '+(state.quiz.i+1)+' dari '+QUIZ.length+' · Skor sementara: '+state.quiz.score+'</p><h4 style="margin-top:0">'+esc(q.q)+'</h4><div id="qopts">'+q.o.map((o,i)=>'<button class="qopt" data-i="'+i+'">'+esc(o)+'</button>').join('')+'</div><p id="qwhy" class="muted" style="font-size:.88rem"></p><button class="btn small hidden" id="qnext">'+(state.quiz.i===QUIZ.length-1?'Lihat hasil':'Lanjut')+'</button>';
   $$('#qopts .qopt').forEach(b=>b.addEventListener('click',()=>{
     if(state.quiz.answered)return; state.quiz.answered=true;
     const i=+b.dataset.i;
@@ -1584,6 +1588,7 @@ function renderQuiz(){
     if(i===q.a){state.quiz.score++;}else{b.classList.add('wrong');}
     $('#qwhy').innerHTML=(i===q.a?'<b>Benar!</b> ':'<b>Belum tepat.</b> ')+esc(q.why);
     $('#qnext').classList.remove('hidden');
+    setTimeout(()=>{const nb=$('#qnext');if(nb)nb.focus();},60);
   }));
   $('#qnext').addEventListener('click',()=>{state.quiz.i++;state.quiz.answered=false;renderQuiz();});
 }
