@@ -1572,6 +1572,7 @@ const QUIZ=[
  {q:'Berkomunikasi dengan penyandang tunarungu yang paling tepat:',o:['Berteriak sekeras-kerasnya','Berbicara sambil menunduk','Menghadapkan wajah, bicara jelas & natural, tulis bila perlu'],a:2,why:'Kontak wajah membantu membaca bibir dan bahasa tubuh; berteriak justru mengubah bentuk bibir.'}
 ];
 function renderQuiz(){
+  if(state.quiz.answered&&state.quiz.i<QUIZ.length)state.quiz.answered=false;
   const q=QUIZ[state.quiz.i];
   if(!q){
     const perfect=state.quiz.score===QUIZ.length;
@@ -1738,53 +1739,82 @@ $('#expWa').addEventListener('click',()=>{
 });
 /* ================== AI CHAT ================== */
 const ALIASES={tugu:'tugu pahlawan|pahlawan|tugu',monkasel:'monkasel|kapal selam|submarine',balikota:'balai kota|balikota|city hall',jmerah:'jembatan merah|jmt merah',tp:'tunjungan plaza|tunjungan|tp',atom:'pasar atom|atom',halteTP:'halte tunjungan|brt',gubeng:'gubeng|stasiun gubeng|stasiun',unair:'unair|airlangga|kampus|universitas airlangga',grandcity:'grand city|grandcity',apsari:'apsari',soetomo:'soetomo|rsud|rumah sakit',kbinsat:'kebun binatang|kbs|zoo',bungkul:'bungkul'};
+function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;if(!m||!n)return Math.max(m,n);let prev=[];for(let j=0;j<=n;j++)prev[j]=j;for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur;}return prev[n];}
 function findPlaces(text){
   const q=text.toLowerCase();const found=[];
+  const words=q.replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>=4);
   Object.keys(ALIASES).forEach(id=>{
-    if(found.indexOf(id)<0&&ALIASES[id].split('|').some(a=>q.includes(a)))found.push(id);
+    const hit=ALIASES[id].split('|').some(a=>q.includes(a)||(a.length>=4&&!a.includes(' ')&&words.some(w=>lev(w,a)<=1)));
+    if(hit&&found.indexOf(id)<0)found.push(id);
   });
-  return found.map(id=>POI_BY_ID[id]);
+  return found.map(id=>POI_BY_ID[id]).filter(Boolean);
 }
 function aiReply(raw){
-  const q=raw.toLowerCase();
-  if(/terima kasih|makasih|thanks/.test(q))return{text:'Sama-sama! Saya selalu di sini kalau Anda butuh rute atau informasi aksesibilitas.'};
-  if(/^(hai|halo|hei|permisi|assalamu|selamat (pagi|siang|sore|malam))/.test(q)&&q.length<45)
-    return{text:'Halo! Saya Asisten AI JalurAkses.\n\nSaya bisa:\n• mencarikan rute terbaik — tulis mis. "rute Tugu Pahlawan ke Gubeng"\n• memberi tips sesuai profil Anda\n• menjawab soal taktil, ramp, dan regulasi\n• mengarahkan Anda melapor keluhan\n\nSilakan, apa yang bisa saya bantu?'};
+  const q=raw.toLowerCase().replace(/[!?.,;:]/g,' ').replace(/\s+/g,' ').trim();
+  if(/terima kasih|makasih|thanks|thx/.test(q))return{text:'Sama-sama! Saya selalu di sini kalau Anda butuh rute atau informasi aksesibilitas. Jangan ragu bertanya lagi ya.'};
+  if(/^(hai|halo|hei|hy|permisi|assalamu|asalamu|selamat (pagi|siang|sore|malam)|apa kabar|halo apa kabar)/.test(q)&&q.length<45)
+    return{text:'Halo! Saya Asisten AI JalurAkses.\n\nSaya bisa:\n\u2022 mencarikan rute terbaik \u2014 tulis mis. "rute Tugu Pahlawan ke Gubeng" atau "dari sini ke Monkasel"\n\u2022 menyesuaikan profil Anda \u2014 cukup bilang "saya pakai kursi roda"\n\u2022 menjawab soal taktil, ramp, dan regulasi\n\u2022 mengarahkan Anda melapor keluhan\n\nSilakan, apa yang bisa saya bantu?'};
+  if(/siapa kamu|kamu siapa|kamu (ini )?apa|kenalin|perkenalkan diri/.test(q))
+    return{text:'Saya Asisten AI JalurAkses \u2014 asisten pintar yang berjalan sepenuhnya di perangkat Anda (tanpa server AI, tanpa internet).\n\nSaya memahami rute, profil disabilitas, edukasi aksesibilitas, dan alur pelaporan. Semua jawaban dihitung lokal demi privasi Anda.'};
+  if(/^(help|bantuan|tolong|menu)$|apa (saja )?yang bisa|bisa apa|ada (apa )?fitur|daftar fitur/.test(q))
+    return{text:'Yang bisa saya bantu:\n\u2022 "rute Tugu Pahlawan ke Gubeng" \u2014 rute AI multi-kriteria\n\u2022 "dari sini ke Unair" \u2014 rute dari GPS Anda\n\u2022 "saya pakai kursi roda" \u2014 ubah profil & seluruh analisis\n\u2022 "apa itu jalur taktil / ramp / UU disabilitas"\n\u2022 "cara melaporkan keluhan"\n\u2022 "pasang di layar utama?" \u2014 jadikan aplikasi\n\nSemua dihitung langsung di perangkat Anda.'};
+  const profWord=/kursi roda|tunanetra|tuna netra|tongkat|tunarungu|tuli\b|lansia|manula/.test(q);
+  if(profWord&&/(saya|aku|profil|pakai|guna|pengguna|set|ubah|jadikan|penyandang|ibu|bapak)/.test(q)){
+    const p=/tunanetra|tuna netra|tongkat|buta/.test(q)?'netra':/tunarungu|tuli\b/.test(q)?'rungu':/lansia|manula/.test(q)?'lansia':'roda';
+    try{applyJenisProfile(p);}catch(e){}
+    const t=TIPS[p];const pick=(t&&t.length)?t[Math.floor(Math.random()*t.length)].replace(/<[^>]+>/g,''):'';
+    return{text:'Siap! Profil saya atur ke '+PROFILES[p].label+'.\n\nRute, skor aksesibilitas, dan tips otomatis menyesuaikan untuk Anda.'+(pick?'\n\nTips untuk Anda: \u201c'+pick+'\u201d':'')+(p==='netra'?'\n\nMic permanen saya aktifkan juga \u2014 cukup bilang "rute ke Gubeng".':''),goto:'rute'};
+  }
   const places=findPlaces(raw);
   const dariSini=/dari sini|lokasi saya|posisi saya/.test(q);
   if(dariSini&&places.length>=1){
-    $('#fromSel').value='__live';$('#toSel').value=places[0].id;
-    runAnalyze(true);
+    try{$('#fromSel').value='__live';$('#toSel').value=places[0].id;runAnalyze(true);}catch(e){}
     const res=state.route;
     if(res&&res.fromId==='__live'){
       const b=res.best;
-      return{text:'Rute dari lokasi GPS Anda menuju '+places[0].name+'\n\n'+b.label+' · '+fmtDist(b.distM)+' · ±'+fmtTime(b.timeM)+'\nSkor aksesibilitas: '+b.score+'/100\n\nDetailnya saya bukakan di tab Rute ya!',goto:'rute'};
+      return{text:'Rute dari lokasi GPS Anda menuju '+places[0].name+'\n\n'+b.label+' \u00b7 '+fmtDist(b.distM)+' \u00b7 \u00b1'+fmtTime(b.timeM)+'\nSkor aksesibilitas: '+b.score+'/100\n\nDetailnya saya bukakan di tab Rute ya!',goto:'rute'};
     }
+    return{text:'Untuk rute dari lokasi Anda, izinkan dulu akses GPS di browser (ikon lokasi di address bar), lalu tanyakan lagi.\n\nSementara itu, Anda bisa memilih asal secara manual di tab Rute.',goto:'rute'};
   }
   if(places.length>=2){
-    $('#fromSel').value=places[0].id;$('#toSel').value=places[1].id;
-    runAnalyze(true);
-    const res=state.route;
-    if(res){
-      const b=res.best,streets=b.edges.slice(0,3).map(e=>e.street).join(' → ')+(b.edges.length>3?' → …':'');
-      return{text:'Rute AI: '+places[0].name+' → '+places[1].name+'\n\n'+
-        'Strategi: '+b.label+' · '+fmtDist(b.distM)+' · ±'+fmtTime(b.timeM)+'\n'+
+    let ok=false;
+    try{$('#fromSel').value=places[0].id;$('#toSel').value=places[1].id;runAnalyze(true);ok=!!state.route;}catch(e){}
+    if(ok){
+      const b=state.route.best,streets=b.edges.slice(0,3).map(e=>e.street).join(' \u2192 ')+(b.edges.length>3?' \u2192 \u2026':'');
+      const exp=(b.explanation&&b.explanation[0])?b.explanation[0].t:'';
+      state.lastPlace=places[1];
+      return{text:'Rute AI: '+places[0].name+' \u2192 '+places[1].name+'\n\n'+
+        'Strategi: '+b.label+' \u00b7 '+fmtDist(b.distM)+' \u00b7 \u00b1'+fmtTime(b.timeM)+'\n'+
         'Skor aksesibilitas: '+b.score+'/100 (profil '+PROFILES[state.profile].label+')\n'+
-        'Jalur utama: '+streets+'\n\n'+b.explanation[0].t+'\n\nSaya bukakan detailnya di tab Rute ya!',goto:'rute'};
+        'Jalur utama: '+streets+(exp?'\n\n'+exp:'')+'\n\nSaya bukakan detailnya di tab Rute ya!',goto:'rute'};
     }
   }
-  if(places.length===1)return{text:'Saya menemukan '+places[0].name+'. Dari mana Anda berangkat? Contoh: "dari '+POIS[(POIS.indexOf(places[0])+3)%POIS.length].name+' ke '+places[0].name+'".'};
-  if(/taktil|tactile/.test(q))return{text:'Jalur taktil (tactile paving) adalah paving bertekstur di trotoar untuk memandu penyandang tunanetra:\n• Pola strip memanjang = arah jalan\n• Pola titik/tombol = peringatan (tangga, penyeberangan, ujung peron)\n\nDi fitur Rute AI, segmen dengan jalur taktil saya beri nilai lebih baik untuk profil Tunanetra. Coba centang "Prioritaskan jalur taktil" di tab Rute.'};
-  if(/ram\b|ramp|kemiringan|tanjakan/.test(q))return{text:'Ramp (tanjakan) ideal memiliki kemiringan maksimum 1 : 12 — untuk naik 30 cm dibutuhkan landai ± 3,6 m — lengkap dengan tepian pengaman.\n\nDi fitur Rute AI, tangga yang sudah dilengkapi ramp tidak saya hitung sebagai hambatan bagi kursi roda.'};
-  if(/undang|regulasi|\buu\b|hak|aturan/.test(q))return{text:'Dua regulasi utama:\n• UU No. 8 Tahun 2016 tentang Penyandang Disabilitas — menjamin aksesibilitas pendidikan, kesehatan, transportasi, dan fasilitas publik.\n• Permen PUPR 14/PRT/M/2017 — bangunan gedung negara wajib aksesibel.\n\nIndonesia juga meratifikasi Konvensi CRPD lewat UU 19/2011. Baca selengkapnya di tab Edukasi.',goto:'edukasi'};
-  if(/saran|tips|rekomendasi|solusi/.test(q)){
-    const t=TIPS[state.profile];const pick=t[Math.floor(Math.random()*t.length)].replace(/<[^>]+>/g,'');
-    return{text:'Untuk profil '+PROFILES[state.profile].label+', salah satu kunci utama:\n\n"'+pick+'"\n\nTips lengkap ada di tab Edukasi.',goto:'edukasi'};
+  if(places.length===1){
+    const prev=(state.lastPlace&&state.lastPlace.id!==places[0].id)?state.lastPlace:null;
+    state.lastPlace=places[0];
+    if(prev&&/^(ke|menuju)\s/.test(q)){
+      let ok=false;
+      try{$('#fromSel').value=prev.id;$('#toSel').value=places[0].id;runAnalyze(true);ok=!!state.route&&state.route.fromId===prev.id;}catch(e){}
+      if(ok){const b=state.route.best;
+        return{text:'Rute AI: '+prev.name+' \u2192 '+places[0].name+'\n\n'+b.label+' \u00b7 '+fmtDist(b.distM)+' \u00b7 \u00b1'+fmtTime(b.timeM)+'\nSkor aksesibilitas: '+b.score+'/100\n\nDetailnya di tab Rute ya!',goto:'rute'};}
+    }
+    return{text:'Saya menemukan '+places[0].name+'. Dari mana Anda berangkat? Contoh: "dari '+POIS[(POIS.indexOf(places[0])+3)%POIS.length].name+' ke '+places[0].name+'" atau "dari sini ke '+places[0].name+'".'};
   }
-  if(/keluhan|lapor|aduan|komplain|masukan/.test(q))return{text:'Untuk melapor hambatan aksesibilitas (trotoar rusak, lift mati, dsb.) atau memberi penilaian kepuasan:\n\nBuka tab Laporan, isi formulir, lalu Kirim.\nLaporan tersimpan dan bisa dipantau statusnya (Baru → Diproses → Selesai).',goto:'laporan'};
-  if(/skor|cara kerja|bagaimana.*(ai|analisis)|\bai\b.*(kerja|analisis)/.test(q))return{text:'Cara kerja analisis saya:\n1. Setiap segmen jalan punya data: trotoar, tangga/ramp, kemiringan, jalur taktil, penyeberangan, lalu lintas, titik istirahat.\n2. Saya jalankan algoritma Dijkstra multi-kriteria dengan bobot sesuai profil Anda (mis. kursi roda = penalti besar pada tangga & tanjakan).\n3. Saya bandingkan 3 strategi: tercepat, termulus, dan teraman.\n4. Yang skornya tertinggi (0–100) saya rekomendasikan beserta alasannya.'};
-  if(/siapa|apa itu|tentang (aplikasi|jalurakses|web)/.test(q))return{text:'JalurAkses adalah web navigasi untuk penyandang disabilitas: menentukan rute terbaik dengan AI, memberi saran personal, edukasi aksesibilitas, serta saluran keluhan & kepuasan pengguna.\n\nSemua analisis berjalan lokal di perangkat Anda — data pribadi tidak dikirim ke mana pun.'};
-  return{text:'Maaf, saya belum memahami itu. Coba salah satu:\n• "rute Tunjungan Plaza ke Stasiun Gubeng"\n• "apa itu jalur taktil?"\n• "saran untuk pengguna kursi roda"\n• "cara melaporkan keluhan"\n\nAtau ketuk saran cepat di bawah.'};
+  if(/taktil|tactile/.test(q))return{text:'Jalur taktil (tactile paving) adalah paving bertekstur di trotoar untuk memandu penyandang tunanetra:\n\u2022 Pola strip memanjang = arah jalan\n\u2022 Pola titik/tombol = peringatan (tangga, penyeberangan, ujung peron)\n\nDi fitur Rute AI, segmen dengan jalur taktil saya beri nilai lebih baik untuk profil Tunanetra. Coba centang "Prioritaskan jalur taktil" di tab Rute.'};
+  if(/ram\b|ramp|kemiringan|tanjakan/.test(q))return{text:'Ramp (tanjakan) ideal memiliki kemiringan maksimum 1 : 12 \u2014 untuk naik 30 cm dibutuhkan landai \u00b1 3,6 m \u2014 lengkap dengan tepian pengaman.\n\nDi fitur Rute AI, tangga yang sudah dilengkapi ramp tidak saya hitung sebagai hambatan bagi kursi roda.'};
+  if(/undang|regulasi|\buu\b|hak|aturan|permen|crpd/.test(q))return{text:'Dua regulasi utama:\n\u2022 UU No. 8 Tahun 2016 tentang Penyandang Disabilitas \u2014 menjamin aksesibilitas pendidikan, kesehatan, transportasi, dan fasilitas publik.\n\u2022 Permen PUPR 14/PRT/M/2017 \u2014 bangunan gedung negara wajib aksesibel.\n\nIndonesia juga meratifikasi Konvensi CRPD lewat UU 19/2011. Baca selengkapnya di tab Edukasi.',goto:'edukasi'};
+  if(/saran|tips|rekomendasi|solusi/.test(q)){const t=TIPS[state.profile];const pick=(t&&t.length)?t[Math.floor(Math.random()*t.length)].replace(/<[^>]+>/g,''):'Pilih profil Anda di tab Rute untuk tips personal.';
+    return{text:'Untuk profil '+PROFILES[state.profile].label+', salah satu kunci utama:\n\n\u201c'+pick+'\u201d\n\nTips lengkap ada di tab Edukasi.',goto:'edukasi'};}
+  if(/keluhan|lapor|aduan|komplain|masukan|melapor/.test(q))return{text:'Untuk melapor hambatan aksesibilitas (trotoar rusak, lift mati, dsb.) atau memberi penilaian kepuasan:\n\nBuka tab Laporan, isi formulir, lalu Kirim.\nLaporan tersimpan dan bisa dipantau statusnya (Baru \u2192 Diproses \u2192 Selesai) \u2014 juga terkirim ke WhatsApp admin kota.',goto:'laporan'};
+  if(/skor|cara kerja|bagaimana.*(ai|analisis)|\bai\b.*(kerja|analisis)|dijkstra|algoritma/.test(q))return{text:'Cara kerja analisis saya:\n1. Setiap segmen jalan punya data: trotoar, tangga/ramp, kemiringan, jalur taktil, penyeberangan, lalu lintas, titik istirahat.\n2. Saya jalankan algoritma Dijkstra multi-kriteria dengan bobot sesuai profil Anda (mis. kursi roda = penalti besar pada tangga & tanjakan).\n3. Saya bandingkan 3 strategi: tercepat, termulus, dan teraman.\n4. Yang skornya tertinggi (0\u2013100) saya rekomendasikan beserta alasannya.'};
+  if(/gratis|bayar|harga|biaya|langganan|berbayar/.test(q))return{text:'JalurAkses 100% gratis dan tanpa iklan. Seluruh analisis AI berjalan di perangkat Anda, jadi tidak ada biaya server yang dibebankan ke siapa pun.'};
+  if(/privasi|data pribadi|data saya|aman (gak|tidak|ga)/.test(q))return{text:'Privasi Anda terjaga:\n\u2022 Analisis rute & chat berjalan lokal di perangkat \u2014 tidak dikirim ke server AI mana pun.\n\u2022 Akun & laporan hanya tersimpan di database aplikasi dan hanya admin yang dapat melihatnya.\n\u2022 Tidak ada pelacakan, tidak ada iklan.'};
+  if(/offline|tanpa internet|sinyal|tidak ada kuota/.test(q))return{text:'Tenang, JalurAkses offline-first! Setelah sekali dibuka, tampilan & data peta inti tersimpan di perangkat \u2014 web tetap terbuka tanpa internet (mode offline), dan laporan yang Anda kirim otomatis tersinkron begitu online kembali.'};
+  if(/pasang|instal|install|layar utama|home screen|tambahkan ke|jadi (aplikasi|apk)/.test(q))return{text:'Bisa! JalurAkses adalah PWA (Progressive Web App):\n\u2022 Android \u2014 buka di Chrome, menu \u22ee \u2192 "Tambahkan ke layar utama"\n\u2022 iPhone \u2014 buka di Safari, tombol Bagikan \u2192 "Tambahkan ke Layar Utama"\n\nSetelah terpasang, JalurAkses terbuka seperti aplikasi biasa dengan ikon sendiri dan tetap bisa dipakai tanpa internet.'};
+  if(/gps|lokasi (saya )?(tidak|kurang)|akurat|salah (lokasi|posisi)/.test(q))return{text:'Jika GPS kurang akurat:\n\u2022 Pastikan izin lokasi diaktifkan untuk browser Anda\n\u2022 Keluar ke area terbuka agar sinyal lebih kuat\n\u2022 Atau pilih titik asal manual di dropdown tab Rute\n\nAnda juga bisa memakai perintah suara: "rute ke [tempat]".'};
+  if(/toilet|toalet|kamar mandi/.test(q))return{text:'Data toilet aksesibel belum tercakup di peta saat ini \u2014 itu masukan berharga! Anda bisa mengusulkannya lewat tab Laporan (pilih kategori fasilitas), dan admin kota akan menindaklanjuti.',goto:'laporan'};
+  if(/siapa|apa itu|tentang (aplikasi|jalurakses|web)/.test(q))return{text:'JalurAkses adalah web navigasi untuk penyandang disabilitas: menentukan rute terbaik dengan AI, memberi saran personal, edukasi aksesibilitas, serta saluran keluhan & kepuasan pengguna.\n\nSemua analisis berjalan lokal di perangkat Anda \u2014 data pribadi tidak dikirim ke mana pun.'};
+  return{text:'Hmm, saya belum yakin memahami itu. Saya paling jago soal:\n\u2022 Rute \u2014 "rute Tugu Pahlawan ke Gubeng" / "dari sini ke Monkasel"\n\u2022 Materi \u2014 "apa itu jalur taktil?", "aturan ramp", "UU disabilitas"\n\u2022 Aksi \u2014 "saya pakai kursi roda", "cara melapor", "pasang di layar utama?"\n\nAtau ketuk saran cepat di bawah kotak ketik.'};
 }
 function chatMsg(role,html){
   const d=document.createElement('div');d.className='msg '+role;d.innerHTML=html;
@@ -1801,7 +1831,7 @@ function toggleChat(force){
   if(open)$('#chatInput').focus();
 }
 function showChat(o){toggleChat(o);}
-const CHIPS=['Rute Tugu Pahlawan ke Gubeng','Saran untuk saya','Apa itu jalur taktil?','Cara melaporkan keluhan'];
+const CHIPS=['Rute Tugu Pahlawan ke Gubeng','Dari sini ke Monkasel','Saya pakai kursi roda','Apa itu jalur taktil?','Cara melaporkan keluhan','Pasang di layar utama?'];
 $('#chatChips').innerHTML=CHIPS.map(c=>'<button>'+esc(c)+'</button>').join('');
 $$('#chatChips button').forEach(b=>b.addEventListener('click',()=>{$('#chatInput').value=b.textContent;sendChat();}));
 function sendChat(){
@@ -1811,7 +1841,9 @@ function sendChat(){
   $('#chatLog').appendChild(typing);$('#chatLog').scrollTop=$('#chatLog').scrollHeight;
   setTimeout(()=>{
     typing.remove();
-    const r=aiReply(v);
+    let r;
+    try{r=aiReply(v);}
+    catch(err){r={text:'Maaf, terjadi kendala memproses pertanyaan itu. Coba pertanyaan lain \u2014 mis. "rute Tugu Pahlawan ke Gubeng" \u2014 atau ketuk saran cepat di bawah.'};}
     chatMsg('bot',esc(r.text).replace(/\n/g,'<br>'));
     if(r.goto)setTimeout(()=>showTab(r.goto),700);
   },550+Math.random()*450);

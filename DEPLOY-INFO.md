@@ -223,3 +223,10 @@ Riwayat singkat: v17 Express · v16 backend+hybrid · v15 Vue 3 · v14 always-mi
 - **OG/Twitter card** + ikon aplikasi (AI-generated 1024 → 512/192/180) — link preview cantik saat dibagikan.
 - **Preconnect** unpkg & tile OSM (load lebih cepat).
 - Live: manifest 200 ✓ sw.js 200 ✓ OG ✓ ikon raw 200 ✓ API sehat ✓.
+
+## v24 — Chatbot maksimal + fix "jawaban tidak ada"
+
+- **Akar masalah**: alias `halteTP` tidak punya POI → `findPlaces` mengembalikan `undefined` → `aiReply` TypeError → typing hilang tanpa jawaban. FIX: `.filter(Boolean)` + seluruh jalur dibungkus try/catch (fallback aman, bot TIDAK PERNAH diam lagi).
+- **NLU maksimal**: fuzzy Levenshtein ≤1 (tahan typo "pahawan/gubng"), intent baru (siapa-kamu, help, ganti profil via chat + auto-mic netra, biaya, privasi, offline, pasang/PWA, GPS, toilet), memori konteks ("ke Monkasel" setelah menyebut tempat), chips 6.
+- **Kuis**: reset state `answered` basi saat restore; (v-prior: typo, progres bar, skor persisten).
+- **Uji real-browser (Puppeteer/Chrome headless)**: 20 asersi — semua PASS, 0 pageerror: chat crash-query ✓ profil-switch ✓ fuzzy ✓ kuis (penjelasan/jawaban ditandai/tombol) ✓ alur chat penuh ✓.
