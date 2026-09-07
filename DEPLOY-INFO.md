@@ -238,3 +238,14 @@ Riwayat singkat: v17 Express · v16 backend+hybrid · v15 Vue 3 · v14 always-mi
 - **Mode Simulasi** (kecepatan 7 m/s default, param speed) — demo indoor untuk juri.
 - **Integrasi**: tombol di hasil rute, perintah suara ("mulai/stop navigasi"), intent chatbot, chip "Mulai navigasi", hint toast setelah analisis.
 - **Uji Puppeteer 22 asersi total**: plan/event/belokan/APILL/snap/arrive/auto-stop/voice-command/chatbot — SEMUA PASS, 0 pageerror; harness PASS=10.
+
+## v26 — Audit aksesibilitas sebagai pengguna disabilitas (Puppeteer + verifikasi piksel)
+
+- **Kontras**: ujung terang gradient tombol hero 2,76:1 → --grad digelapkan (#0b5d57/#0f766e/#115e59; kini 5,47–7,73:1 — diverifikasi matematis + piksel).
+- **Font kecil**: .68/.7rem (10,88px) → .75rem (12px) — logo subjudul, syncBadge, langkah 3, timestamp notifikasi.
+- **Target sentuh**: .chip min-height 24px + padding naik (WCAG 2.5.8).
+- **Lightbox**: aria-modal, Esc untuk tutup, fokus pindah ke tombol Tutup & kembali ke pemicu, alt dinamis "Foto laporan: {judul}".
+- **Tunarungu**: speakRoute kini menampilkan **Transkrip panduan suara** di hasil rute.
+- **Screen reader**: #navSr live region menggemakan pengumuman Panduan Langsung (tanpa perlu devTTS).
+- **Bug logika navigasi**: event terlewat antar-tick (dd≤−6 m) tak pernah diumumkan → ambang −40 m + frasa "Sekarang belok…" (dd<8 m).
+- Audit: img-alt 0 ✓ nama aksesibel 0 masalah ✓ keyboard 0 jebakan ✓ skip-link ✓ lang=id ✓ reflow 320px OK ✓; uji ulang: harness PASS=10, 0 pageerror.

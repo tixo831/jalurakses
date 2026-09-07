@@ -62,7 +62,7 @@ header.site{position:sticky; top:0; z-index:1200; background:var(--card); border
 .hwrap{max-width:1180px; margin:0 auto; padding:10px 18px; display:flex; flex-wrap:wrap; gap:10px; align-items:center}
 .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.15rem; color:var(--ink); text-decoration:none}
 .logo .mark{width:38px;height:38px;border-radius:11px;background:var(--brand);display:grid;place-items:center;flex:0 0 auto}
-.logo small{display:block; font-weight:600; color:var(--muted); font-size:.68rem; letter-spacing:.4px}
+.logo small{display:block; font-weight:600; color:var(--muted); font-size:.75rem; letter-spacing:.4px}
 nav.tabs{display:flex; gap:4px; flex-wrap:wrap; margin-left:auto}
 nav.tabs button{border:2px solid transparent; background:none; color:var(--ink); font:inherit; font-weight:700; padding:9px 14px; border-radius:12px; cursor:pointer; display:flex; align-items:center; gap:7px}
 nav.tabs button:hover{background:var(--brand-soft)}
@@ -104,7 +104,7 @@ textarea{min-height:96px; resize:vertical}
 .checks label{font-weight:600; display:flex; gap:10px; align-items:center; margin:0}
 .checks input{width:20px; height:20px; accent-color:var(--brand)}
 /* ============ CHIPS & BADGES ============ */
-.chip{display:inline-flex; align-items:center; gap:4px; font-size:.76rem; font-weight:700; padding:2px 10px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--muted)}
+.chip{display:inline-flex; align-items:center; gap:4px; font-size:.76rem; font-weight:700; padding:4px 11px; min-height:24px; border-radius:999px; background:var(--bg); border:1px solid var(--line); color:var(--muted)}
 .chip-ok{background:var(--ok-soft); color:var(--ok); border-color:transparent}
 .chip-warn{background:var(--warn-soft); color:var(--warn); border-color:transparent}
 .chip-bad{background:var(--bad-soft); color:var(--bad); border-color:transparent}
@@ -175,6 +175,7 @@ details.acc .body{padding:6px 20px 18px}
 .qopt:disabled{cursor:default; opacity:.85}
 .qbarWrap{height:8px;background:var(--line);border-radius:99px;margin:10px 0 2px;overflow:hidden}
 .qbar{height:100%;background:var(--brand);border-radius:99px;transition:width .35s}
+.visually-hidden{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;clip:rect(0 0 0 0);clip-path:inset(50%);overflow:hidden;white-space:nowrap}
 .navbar-live{position:fixed;top:10px;left:50%;transform:translateX(-50%);width:min(94vw,560px);z-index:1200;background:var(--card);border:2px solid var(--brand);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 12px}
 .navbar-live .nvhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem}
 .navbar-live .nvmain{font-size:1.02rem;margin:6px 0 4px}
@@ -211,7 +212,7 @@ h1>.ico,h2>.ico,h3>.ico,summary>.ico{color:var(--brand)}
 .statmini .muted{font-size:.72rem}
 /* == timeline status laporan saya == */
 .steps3{display:flex;list-style:none;padding:0;margin:10px 0 0}
-.steps3 li{flex:1;text-align:center;font-size:.7rem;font-weight:800;color:#64748b;position:relative;padding-top:16px}
+.steps3 li{flex:1;text-align:center;font-size:.75rem;font-weight:800;color:#64748b;position:relative;padding-top:16px}
 .steps3 li::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--line);position:absolute;top:1px;left:50%;transform:translateX(-50%);border:2px solid var(--card)}
 .steps3 li::after{content:"";position:absolute;top:6px;left:-50%;width:100%;height:2px;background:var(--line)}
 .steps3 li:first-child::after{display:none}
@@ -299,7 +300,7 @@ footer.site{border-top:2px solid var(--line); background:var(--card); margin-top
 .leaflet-container{font:inherit}
 
 /* ============ PREMIUM SKIN (lomba) ============ */
-:root{--brand2:#0ea5a0;--grad:linear-gradient(135deg,#0f766e,#0ea5a0 55%,#14b8a6);--ring:0 0 0 4px rgba(15,118,110,.18)}
+:root{--brand2:#0ea5a0;--grad:linear-gradient(135deg,#0b5d57,#0f766e 55%,#115e59);--ring:0 0 0 4px rgba(15,118,110,.18)}
 [data-theme="dark"]{--grad:linear-gradient(135deg,#0b5d57,#0f766e 55%,#14b8a6)}
 body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;letter-spacing:.1px}
 header.site{background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--brand) 25%,var(--line))}
@@ -436,7 +437,7 @@ footer.site{border-top:1px solid color-mix(in srgb,var(--brand) 20%,var(--line))
     </div>
   </div>
   <div class="hrow2">
-    <span id="syncBadge" class="chip" style="font-size:.68rem" title="Status backend">Memeriksa server…</span>
+    <span id="syncBadge" class="chip" title="Status backend">Memeriksa server…</span>
     <button id="bellBtn" class="bellbtn" aria-label="Notifikasi" title="Notifikasi"><svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span id="bellBadge" class="nbadge hidden"></span></button>
     <div id="notifPanel" class="npanel hidden" role="dialog" aria-label="Notifikasi"></div>
     <div class="profilebox">
@@ -961,7 +962,8 @@ footer.site{border-top:1px solid color-mix(in srgb,var(--brand) 20%,var(--line))
 </div>
 
 <!-- LIGHTBOX FOTO -->
-<div id="lightbox" role="dialog" aria-label="Pratinjau foto"><img id="lightboxImg" alt="Foto laporan diperbesar"><button onclick="document.getElementById('lightbox').classList.remove('show')"><svg class="ico sm" aria-hidden="true" focusable="false"><use href="#i-x"/></svg> Tutup</button></div>
+<div id="navSr" class="visually-hidden" role="status" aria-live="polite"></div>
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Pratinjau foto"><img id="lightboxImg" alt="Foto laporan diperbesar"><button onclick="document.getElementById('lightbox').classList.remove('show')"><svg class="ico sm" aria-hidden="true" focusable="false"><use href="#i-x"/></svg> Tutup</button></div>
 
 <!-- VOICE REMINDER GATE -->
 <div id="voiceGate" class="voicegate hidden" role="dialog" aria-label="Pengingat aksesibilitas bersuara">
@@ -1495,6 +1497,7 @@ function renderRouteResult(res){
    ((res.fromId==='__live'||res.toId==='__live')?'<p class="chip chip-info" style="font-size:.78rem">'+IC('pin','sm')+' Titik '+((res.fromId==='__live')?'awal':'tujuan')+' = posisi GPS Anda · akurasi ±'+Math.round(state.livePos?state.livePos.acc:0)+' m — segmen pertama adalah jalur akses menuju jaringan rute terdekat</p>':'')+
    '<button class="btn ghost small readbtn" id="readRouteBtn" aria-label="Bacakan rute dengan suara"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-speaker"/></svg> Bacakan rute (panduan suara)</button>'+'   <button class="btn small" id="navStartBtn" style="margin-left:6px">🔊 Mulai Panduan Langsung</button>'+
    '<button class="btn ghost small" id="navSimBtn" style="margin-left:6px" title="Coba panduan suara tanpa berjalan (dianimasikan)">▶ Simulasi</button>'+
+   '<div id="routeTranscript" class="card" style="display:none; margin-top:10px; border:1px dashed var(--line)"></div>'+
    ((state.user&&state.user.role!=='admin')?'<button class="btn ghost small" id="saveRouteBtn" style="margin-left:8px">'+IC('bookmark','sm')+' Simpan rute ini</button>':'')+
    '<h4>Mengapa rute ini?</h4><ul class="aiexplain">'+best.explanation.map(x=>'<li class="'+(x.ok?'ok':'warn')+'" style="color:'+(x.ok?'var(--ok)':'var(--warn)')+'">'+x.t+'</li>').join('')+'</ul>';
   /* alternatives */
@@ -1613,7 +1616,7 @@ function renderFeedback(){
     (x.photos&&x.photos.length?'<div class="fbphotos">'+x.photos.map((p,i)=>'<img src="'+p+'" data-id="'+x.id+'" data-idx="'+i+'" alt="Foto laporan '+(i+1)+'" tabindex="0" role="button" aria-label="Lihat foto '+(i+1)+'">').join('')+'</div>':'')+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn small ghost" data-up="'+x.id+'">'+IC('users','sm')+' Saya alami juga (<b style="margin-left:3px">'+(x.up||0)+'</b>)</button><button class="btn small ghost" data-swa="'+x.id+'" title="Kirim laporan ini ke admin via WhatsApp">'+IC('chat','sm')+' WA Admin</button><button class="btn small ghost" data-shr="'+x.id+'" aria-label="Bagikan laporan">'+IC('send','sm')+'</button>'+(adm?'<label style="margin:0;font-size:.8rem" for="st'+x.id+'">Status:</label><select id="st'+x.id+'" style="width:auto;padding:6px 10px;font-size:.85rem"><option'+(x.status==='Baru'?' selected':'')+'>Baru</option><option'+(x.status==='Diproses'?' selected':'')+'>Diproses</option><option'+(x.status==='Selesai'?' selected':'')+'>Selesai</option></select><button class="btn small ghost" data-verif="'+x.id+'">'+IC('check','sm')+' '+(x.verif?'Batalkan verifikasi':'Verifikasi')+'</button><button class="btn small ghost" data-del="'+x.id+'" aria-label="Hapus laporan">'+IC('trash','sm')+'</button>':'')+'</div></div>').join(''):'<div class="card"><p class="muted" style="margin:0">Belum ada laporan. Jadilah yang pertama melaporkan hambatan aksesibilitas.</p></div>';
   $$('.fbphotos img').forEach(img=>{
-    const open=()=>{const it=state.feedback.find(z=>String(z.id)===String(img.dataset.id));if(it&&it.photos){$('#lightboxImg').src=it.photos[+img.dataset.idx];$('#lightbox').classList.add('show');}};
+    const open=()=>{const it=state.feedback.find(z=>String(z.id)===String(img.dataset.id));if(it&&it.photos){$('#lightboxImg').src=it.photos[+img.dataset.idx];$('#lightboxImg').alt='Foto laporan: '+(it.judul||it.lok||'tanpa judul');$('#lightbox').classList.add('show');lbLast=document.activeElement;setTimeout(()=>{const lb=$('#lightbox button');if(lb)lb.focus();},50);}};
     img.addEventListener('click',open);
     img.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
   });
@@ -1823,6 +1826,10 @@ function navVib(pat){try{if(navigator.vibrate)navigator.vibrate(pat);}catch(e){}
 function navEventText(ev,dd){
   if(ev.t==='arr')return 'Anda telah tiba di tujuan. Perjalanan selesai, semoga selamat sampai.';
   if(ev.t==='turn'){
+    if(dd<8){
+      if(ev.dir==='lurus')return 'Tetap lurus menyusuri '+ev.street+'.';
+      return 'Sekarang belok '+ev.dir+' ke '+ev.street+'.';
+    }
     const dLab=Math.max(5,Math.round(dd/5)*5);
     if(ev.dir==='lurus')return 'Dalam '+dLab+' meter, tetap lurus menyusuri '+ev.street+'.';
     return 'Dalam '+dLab+' meter, belok '+ev.dir+' ke '+ev.street+'.';
@@ -1849,10 +1856,10 @@ function navProcess(){
   n.events.forEach(ev=>{
     if(n.announced[ev.id]||ev.skip)return;
     const dd=ev.d-n.s;
-    if(dd<=LOOK&&dd>-6){
+    if(dd<=LOOK&&dd>-40){
       n.announced[ev.id]=1;
       const txt=navEventText(ev,dd);
-      if(txt){navSpeak(txt);navVib([90,60,90]);}
+      if(txt){navSpeak(txt);navVib([90,60,90]);const sr=$('#navSr');if(sr)sr.textContent=txt;}
     }
   });
   if(n.mode==='gps'&&n.off>35&&!n.warnOff){n.warnOff=1;navSpeak('Hati-hati, Anda tampak keluar dari rute. Kembali ke jalur, atau analisis ulang rute.');navVib([200,100,200,100,200]);}
@@ -1912,6 +1919,9 @@ function stopNav(spoken){
   try{setWake(false);}catch(e){}
   if(spoken)speak('Panduan langsung dihentikan.');
 }
+
+let lbLast=null;
+document.addEventListener('keydown',e=>{const lb=typeof document!=='undefined'?document.getElementById('lightbox'):null;if(e.key==='Escape'&&lb&&lb.classList.contains('show')){lb.classList.remove('show');if(lbLast&&lbLast.focus)try{lbLast.focus();}catch(_){}}});
 
 /* ================== AI CHAT ================== */
 const ALIASES={tugu:'tugu pahlawan|pahlawan|tugu',monkasel:'monkasel|kapal selam|submarine',balikota:'balai kota|balikota|city hall',jmerah:'jembatan merah|jmt merah',tp:'tunjungan plaza|tunjungan|tp',atom:'pasar atom|atom',halteTP:'halte tunjungan|brt',gubeng:'gubeng|stasiun gubeng|stasiun',unair:'unair|airlangga|kampus|universitas airlangga',grandcity:'grand city|grandcity',apsari:'apsari',soetomo:'soetomo|rsud|rumah sakit',kbinsat:'kebun binatang|kbs|zoo',bungkul:'bungkul'};
@@ -2102,7 +2112,7 @@ function userPoints(){const uid=myUid();const my=state.feedback.filter(x=>x.uid=
 function levelInfo(p){return p>=100?{n:'Duta Aksesibilitas',base:100,next:null}:p>=50?{n:'Duta Muda',base:50,next:100}:p>=20?{n:'Kontributor',base:20,next:50}:{n:'Perintis',base:0,next:20};}
 function pushNotif(txt,icon){state.notif.unshift({ts:Date.now(),txt:txt,icon:icon||'bell',read:0});state.notif=state.notif.slice(0,30);store.set('ja_notif',state.notif);renderBell();try{devNotify(txt);}catch(e){}}
 function renderBell(){const un=state.notif.filter(n=>!n.read).length;const b=$('#bellBadge');if(!b)return;b.textContent=un;b.classList.toggle('hidden',!un);const btn=$('#bellBtn');if(btn)btn.setAttribute('aria-label','Notifikasi ('+un+' belum dibaca)');}
-function renderNotifPanel(){const p=$('#notifPanel');if(!p)return;p.innerHTML='<div style="display:flex;align-items:center;gap:8px"><b>Notifikasi</b><span class="chip">'+state.notif.length+'</span><button class="btn small ghost" id="notifClear" style="margin-left:auto">Tandai dibaca</button></div>'+(state.notif.length?state.notif.map(n=>'<div class="nitem'+(n.read?'':' unread')+'">'+IC(n.icon||'bell','sm')+'<span>'+esc(n.txt)+'<br><span class="muted" style="font-size:.7rem;font-weight:400">'+new Date(n.ts).toLocaleString('id-ID')+'</span></span></div>').join(''):'<p class="muted" style="font-size:.85rem;margin:8px 0 0">Belum ada notifikasi.</p>');
+function renderNotifPanel(){const p=$('#notifPanel');if(!p)return;p.innerHTML='<div style="display:flex;align-items:center;gap:8px"><b>Notifikasi</b><span class="chip">'+state.notif.length+'</span><button class="btn small ghost" id="notifClear" style="margin-left:auto">Tandai dibaca</button></div>'+(state.notif.length?state.notif.map(n=>'<div class="nitem'+(n.read?'':' unread')+'">'+IC(n.icon||'bell','sm')+'<span>'+esc(n.txt)+'<br><span class="muted" style="font-size:.75rem;font-weight:400">'+new Date(n.ts).toLocaleString('id-ID')+'</span></span></div>').join(''):'<p class="muted" style="font-size:.85rem;margin:8px 0 0">Belum ada notifikasi.</p>');
   const c=$('#notifClear');if(c)c.addEventListener('click',()=>{state.notif.forEach(n=>n.read=1);store.set('ja_notif',state.notif);renderBell();renderNotifPanel();});}
 function renderAnn(){const el=$('#annBar');if(!el)return;const a=state.announce;
   if(a&&a.txt&&store.get('ja_ann_seen')!==a.ts){el.innerHTML='<div class="annc">'+IC('mega')+'<div><b>Pengumuman Admin</b><p style="margin:4px 0 0;font-size:.9rem">'+esc(a.txt)+'</p></div><button class="btn small ghost" id="annClose" aria-label="Tutup pengumuman" style="margin-left:auto;flex:0 0 auto">'+IC('x','sm')+'</button></div>';
@@ -2389,6 +2399,7 @@ function speak(text){
 if('speechSynthesis' in window){try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{try{speechSynthesis.getVoices();}catch(e){}};}catch(e){}}
 function speakRoute(res){
   if(!res)return;
+  try{const tr=$('#routeTranscript');if(tr){tr.style.display='block';tr.innerHTML='<b>Transkrip panduan suara</b> (untuk pengguna tunarungu):<p style="margin:6px 0 0">'+esc(res.best.edges.map(e=>e.street).join(', lalu '))+'</p>';}}catch(e){}
   const b=res.best;
   const jalur=b.edges.map(e=>e.street).join(', lalu ');
   const txt='Rute terbaik untuk Anda. '+b.label+'. Jarak '+fmtDist(b.distM)+'. Estimasi '+fmtTime(b.timeM)+'. Skor aksesibilitas '+b.score+' dari 100. Jalur: '+jalur+'. '+b.explanation.slice(0,3).map(x=>x.t).join(' ');
